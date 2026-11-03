@@ -36,7 +36,7 @@ namespace BallGame.Configs
         [SerializeField]
         [Min(0f)]
         [Tooltip("Max random offset from the grid cell center.")]
-        private float _obstacleJitter = 0.3f;
+        private float _obstacleJitter = 0.15f;
 
         [SerializeField]
         [Min(0.05f)]

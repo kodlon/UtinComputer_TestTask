@@ -19,7 +19,7 @@ MonoBehaviour:
   _startClearRadius: 2.5
   _doorClearRadius: 3
   _obstacleSpacing: 1.1
-  _obstacleJitter: 0.3
+  _obstacleJitter: 0.15
   _obstacleRadius: 0.35
   _obstacleRadiusVariation: 0.15
   _obstacleHeight: 1.2
