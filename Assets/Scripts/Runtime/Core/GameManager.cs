@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using BallGame.CameraRig;
 using BallGame.Common;
@@ -46,6 +47,8 @@ namespace BallGame.Core
         [SerializeField]
         private Projectile _projectile;
 
+        private readonly List<InfectionHit> _infected = new();
+
         private ShotCharger _charger;
 
         private LevelModel _level;
@@ -68,6 +71,8 @@ namespace BallGame.Core
             _inputReader.PressStarted += OnPressStarted;
             _inputReader.PressReleased += OnPressReleased;
             _player.RadiusChanged += OnPlayerRadiusChanged;
+            _projectile.Arrived += OnProjectileArrived;
+            _obstacleField.InfectionWaveCompleted += OnInfectionWaveCompleted;
         }
 
         private void OnDisable()
@@ -75,6 +80,8 @@ namespace BallGame.Core
             _inputReader.PressStarted -= OnPressStarted;
             _inputReader.PressReleased -= OnPressReleased;
             _player.RadiusChanged -= OnPlayerRadiusChanged;
+            _projectile.Arrived -= OnProjectileArrived;
+            _obstacleField.InfectionWaveCompleted -= OnInfectionWaveCompleted;
         }
 
         private void Start()
@@ -128,13 +135,40 @@ namespace BallGame.Core
                 return;
             }
 
-            // Stage 7: the shot is only charged; launching it arrives with the projectile flight in stage 8.
-            if (_charger.TryRelease(out var shotRadius))
+            if (!_charger.TryRelease(out var shotRadius))
             {
-                Log($"[Game] Shot released, radius {shotRadius:0.00}, player radius {_player.Radius:0.00}");
-                _charger.Cancel();
+                SetState(GameState.Ready);
+                return;
             }
 
+            // The outcome is resolved by the model right away; the projectile only visualises it. A miss flies to the door.
+            var hasHit = _rules.TryResolveShot(_level, _player.Position, _player.Radius, shotRadius, _infected, out var hitPoint);
+            Log($"[Game] Shot radius {shotRadius:0.00}: {(hasHit ? $"{_infected.Count} infected" : "miss")}");
+
+            SetState(GameState.ShotInFlight);
+            _projectile.Launch(hasHit ? hitPoint : _level.DoorPoint, _balanceConfig.ProjectileSpeed);
+        }
+
+        private void OnProjectileArrived()
+        {
+            if (_infected.Count == 0)
+            {
+                SetState(GameState.Ready);
+                return;
+            }
+
+            foreach (var hit in _infected)
+            {
+                _level.Kill(hit.ObstacleIndex);
+            }
+
+            SetState(GameState.Resolving);
+            _obstacleField.PlayInfection(_infected, _balanceConfig.InfectWaveSpeed, _balanceConfig.ExplodeDelay);
+        }
+
+        // Stage 8: back to aiming; moving the player forward arrives in stage 9.
+        private void OnInfectionWaveCompleted()
+        {
             SetState(GameState.Ready);
         }
 

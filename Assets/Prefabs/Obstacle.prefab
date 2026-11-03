@@ -103,3 +103,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7de90d413db1cb04d94898a70983f5aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BallGame.Runtime::BallGame.Level.ObstacleView
+  _infectedMaterial: {fileID: 2100000, guid: 24b8759838f78bd4285eb3add4037515, type: 2}
+  _renderer: {fileID: 7079200308276035698}

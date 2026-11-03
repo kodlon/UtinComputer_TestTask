@@ -122,9 +122,9 @@ namespace BallGame.Model
                 return false;
             }
 
-            var minShot = _config.MinShotRadius;
-            var playerShotLimit = VolumeMath.RadiusFromVolume(volume) * _config.SolverMaxShotRatio;
-            var maxShot = Mathf.Min(VolumeMath.RadiusFromVolume(_rules.MaxShotVolume(volume)), playerShotLimit);
+            var playerRadius = VolumeMath.RadiusFromVolume(volume);
+            var maxShot = Mathf.Min(VolumeMath.RadiusFromVolume(_rules.MaxShotVolume(volume)), playerRadius * _config.SolverMaxShotRatio);
+            var minShot = Mathf.Min(Mathf.Max(_config.MinShotRadius, playerRadius * _config.SolverMinShotRatio), maxShot);
             var candidates = _config.SolverShotCandidates;
 
             var bestProgressScore = 0f;
@@ -135,11 +135,11 @@ namespace BallGame.Model
             {
                 var shotRadius = Mathf.Lerp(minShot, maxShot, i / (float)(candidates - 1));
                 var shotVolume = VolumeMath.VolumeFromRadius(shotRadius);
-                var playerRadius = VolumeMath.RadiusFromVolume(volume - shotVolume);
+                var radiusAfterShot = VolumeMath.RadiusFromVolume(volume - shotVolume);
 
                 _trial.CopyStateFrom(_simulation);
 
-                if (!_rules.TryResolveShot(_trial, position, playerRadius, shotRadius, _infected, out var hitPoint))
+                if (!_rules.TryResolveShot(_trial, position, radiusAfterShot, shotRadius, _infected, out var hitPoint))
                 {
                     continue;
                 }
@@ -149,7 +149,7 @@ namespace BallGame.Model
                     _trial.Kill(hit.ObstacleIndex);
                 }
 
-                var progress = _rules.FreeDistance(_trial, position, playerRadius);
+                var progress = _rules.FreeDistance(_trial, position, radiusAfterShot);
                 var progressScore = progress / shotVolume;
                 var clearScore = _infected.Count / shotVolume;
 

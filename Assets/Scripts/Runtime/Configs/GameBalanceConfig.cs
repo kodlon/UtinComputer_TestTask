@@ -40,8 +40,8 @@ namespace BallGame.Configs
         [Header("Infection")]
         [SerializeField]
         [Min(0f)]
-        [Tooltip("Initial infection energy = factor * shot volume (r³). Every infected obstacle costs energy.")]
-        private float _infectionEnergyFactor = 60f;
+        [Tooltip("Initial infection energy = factor * r^1.5. Every infected obstacle costs energy.")]
+        private float _infectionEnergyFactor = 7f;
 
         [SerializeField]
         [Min(0f)]
@@ -107,9 +107,13 @@ namespace BallGame.Configs
         private int _maxRegenerateAttempts = 10;
 
         [SerializeField]
+        [Range(0.05f, 1f)]
+        [Tooltip("Solver shots are limited to [min, max] * player radius, so its strategy stays human-like.")]
+        private float _solverMinShotRatio = 0.5f;
+
+        [SerializeField]
         [Range(0.1f, 1f)]
-        [Tooltip("Solver never charges a shot bigger than this fraction of the player radius, so its strategy stays human-like.")]
-        private float _solverMaxShotRatio = 0.5f;
+        private float _solverMaxShotRatio = 0.65f;
 
         public float BaseChargeRate => _baseChargeRate;
 
@@ -154,6 +158,8 @@ namespace BallGame.Configs
         public float SizeReserve => _sizeReserve;
 
         public float SolverMaxShotRatio => _solverMaxShotRatio;
+
+        public float SolverMinShotRatio => _solverMinShotRatio;
 
         public int SolverShotCandidates => _solverShotCandidates;
 

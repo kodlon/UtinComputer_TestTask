@@ -5,6 +5,8 @@ namespace BallGame.Core
         Boot,
         Ready,
         Charging,
+        ShotInFlight,
+        Resolving,
         Lose
     }
 }

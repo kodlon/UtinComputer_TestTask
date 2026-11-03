@@ -42,7 +42,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  _infectionEnergyFactor: 60
+  _infectionEnergyFactor: 7
   _chainHopCost: 0.6
   _chainGapCostFactor: 1
   _maxChainGap: 0.6
@@ -57,3 +57,5 @@ MonoBehaviour:
   _doorOpenDistance: 5
   _solverShotCandidates: 8
   _maxRegenerateAttempts: 10
+  _solverMinShotRatio: 0.5
+  _solverMaxShotRatio: 0.65

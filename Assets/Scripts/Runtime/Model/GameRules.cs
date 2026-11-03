@@ -56,10 +56,11 @@ namespace BallGame.Model
             return Mathf.Max(0f, hitDistance - _config.MoveSafetyGap);
         }
 
-        // Energy grows with shot volume, so efficiency per spent volume is flat and dense groups give the bonus.
+        // Energy is the infection reach in hops, so the infected area grows with energy². E ∝ r^1.5 makes that area
+        // proportional to the shot volume: efficiency per spent size is flat and only obstacle density gives a bonus.
         public float InfectionEnergy(float shotRadius)
         {
-            return _config.InfectionEnergyFactor * VolumeMath.VolumeFromRadius(shotRadius);
+            return _config.InfectionEnergyFactor * shotRadius * Mathf.Sqrt(shotRadius);
         }
 
         // Largest shot volume that still leaves the player above the critical radius.
