@@ -8,7 +8,9 @@ using BallGame.Level;
 using BallGame.Model;
 using BallGame.Player;
 using BallGame.Shooting;
+using BallGame.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
 
 namespace BallGame.Core
@@ -54,6 +56,13 @@ namespace BallGame.Core
         [SerializeField]
         private Projectile _projectile;
 
+        [Header("UI")]
+        [SerializeField]
+        private HudView _hud;
+
+        [SerializeField]
+        private ResultView _result;
+
         private readonly List<InfectionHit> _infected = new();
 
         private ShotCharger _charger;
@@ -81,6 +90,7 @@ namespace BallGame.Core
             _playerMover.MoveCompleted += OnMoveCompleted;
             _projectile.Arrived += OnProjectileArrived;
             _obstacleField.InfectionWaveCompleted += OnInfectionWaveCompleted;
+            _result.RestartClicked += OnRestartClicked;
         }
 
         private void OnDisable()
@@ -90,6 +100,7 @@ namespace BallGame.Core
             _playerMover.MoveCompleted -= OnMoveCompleted;
             _projectile.Arrived -= OnProjectileArrived;
             _obstacleField.InfectionWaveCompleted -= OnInfectionWaveCompleted;
+            _result.RestartClicked -= OnRestartClicked;
         }
 
         private void Start()
@@ -106,6 +117,8 @@ namespace BallGame.Core
             _player.Initialize(_level.StartPoint, _solveResult.StartVolume);
             _door.Place(_level.DoorPoint, -_level.LaneDirection, _player.transform, _balanceConfig.DoorOpenDistance);
             _cameraFollow.SetTarget(_player.transform);
+            _hud.Initialize(_player.Radius, _balanceConfig.CriticalRadius);
+            _result.Hide();
 
             SetState(GameState.Ready);
         }
@@ -130,6 +143,7 @@ namespace BallGame.Core
             if (_level != null)
             {
                 _lanePath.Refresh(_player.Position, _player.Radius * 2f);
+                _hud.SetRadius(_player.Radius);
             }
         }
 
@@ -156,6 +170,8 @@ namespace BallGame.Core
                 SetState(GameState.Ready);
                 return;
             }
+
+            _hud.HideHint();
 
             // The outcome is resolved by the model right away; the projectile only visualises it. A miss flies to the door.
             var hasHit = _rules.TryResolveShot(_level, _player.Position, _player.Radius, shotRadius, _infected, out var hitPoint);
@@ -223,6 +239,7 @@ namespace BallGame.Core
         {
             SetState(GameState.Win);
             _inputReader.SetEnabled(false);
+            _result.ShowWin(_player.Volume / _solveResult.StartVolume);
             Log($"[Game] Win with radius {_player.Radius:0.00} ({_player.Volume / _solveResult.StartVolume:P0} of start volume)");
         }
 
@@ -232,7 +249,13 @@ namespace BallGame.Core
             SetState(GameState.Lose);
             _charger.Cancel();
             _inputReader.SetEnabled(false);
+            _result.ShowLose(reason);
             Log($"[Game] Lose: {reason}");
+        }
+
+        private void OnRestartClicked()
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
         private void SetState(GameState state)

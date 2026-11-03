@@ -3,6 +3,7 @@
     "rootNamespace": "BallGame",
     "references": [
         "Unity.InputSystem",
+        "Unity.TextMeshPro",
         "UnityEngine.UI"
     ],
     "includePlatforms": [],
