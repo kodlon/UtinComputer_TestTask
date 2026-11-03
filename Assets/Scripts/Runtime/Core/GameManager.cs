@@ -1,8 +1,14 @@
+using System.Diagnostics;
+using BallGame.CameraRig;
 using BallGame.Common;
 using BallGame.Configs;
+using BallGame.Input;
 using BallGame.Level;
 using BallGame.Model;
+using BallGame.Player;
+using BallGame.Shooting;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace BallGame.Core
 {
@@ -27,16 +33,48 @@ namespace BallGame.Core
         [SerializeField]
         private ObstacleField _obstacleField;
 
+        [Header("Gameplay")]
+        [SerializeField]
+        private CameraFollow _cameraFollow;
+
+        [SerializeField]
+        private InputReader _inputReader;
+
+        [SerializeField]
+        private PlayerBall _player;
+
+        [SerializeField]
+        private Projectile _projectile;
+
+        private ShotCharger _charger;
+
         private LevelModel _level;
 
         private GameRules _rules;
 
         private SolveResult _solveResult;
 
+        private GameState _state = GameState.Boot;
+
         private void Awake()
         {
             Application.targetFrameRate = TargetFrameRate;
             _rules = new GameRules(_balanceConfig);
+            _charger = new ShotCharger(_balanceConfig, _rules, _player, _projectile);
+        }
+
+        private void OnEnable()
+        {
+            _inputReader.PressStarted += OnPressStarted;
+            _inputReader.PressReleased += OnPressReleased;
+            _player.RadiusChanged += OnPlayerRadiusChanged;
+        }
+
+        private void OnDisable()
+        {
+            _inputReader.PressStarted -= OnPressStarted;
+            _inputReader.PressReleased -= OnPressReleased;
+            _player.RadiusChanged -= OnPlayerRadiusChanged;
         }
 
         private void Start()
@@ -50,7 +88,74 @@ namespace BallGame.Core
             _obstacleField.Build(_level, _levelConfig);
             _door.Place(_level.DoorPoint, -_level.LaneDirection);
             _lanePath.Setup(_level.DoorPoint);
-            _lanePath.Refresh(_level.StartPoint, _solveResult.StartRadius * 2f);
+            _projectile.Hide();
+            _player.Initialize(_level.StartPoint, _solveResult.StartVolume);
+            _cameraFollow.SetTarget(_player.transform);
+
+            SetState(GameState.Ready);
+        }
+
+        private void Update()
+        {
+            if (_state != GameState.Charging)
+            {
+                return;
+            }
+
+            _charger.Tick(Time.deltaTime);
+
+            if (_charger.IsOvercharged)
+            {
+                Lose(LoseReason.Overcharged);
+            }
+        }
+
+        private void OnPressStarted()
+        {
+            if (_state != GameState.Ready)
+            {
+                return;
+            }
+
+            _charger.Begin(_level.LaneDirection);
+            SetState(GameState.Charging);
+        }
+
+        private void OnPressReleased()
+        {
+            if (_state != GameState.Charging)
+            {
+                return;
+            }
+
+            // Stage 7: the shot is only charged; launching it arrives with the projectile flight in stage 8.
+            if (_charger.TryRelease(out var shotRadius))
+            {
+                Log($"[Game] Shot released, radius {shotRadius:0.00}, player radius {_player.Radius:0.00}");
+                _charger.Cancel();
+            }
+
+            SetState(GameState.Ready);
+        }
+
+        private void OnPlayerRadiusChanged(float radius)
+        {
+            _lanePath.Refresh(_player.Position, radius * 2f);
+        }
+
+        private void Lose(LoseReason reason)
+        {
+            // State first: disabling input fires PressReleased, which must not see the Charging state.
+            SetState(GameState.Lose);
+            _charger.Cancel();
+            _inputReader.SetEnabled(false);
+            Log($"[Game] Lose: {reason}");
+        }
+
+        private void SetState(GameState state)
+        {
+            Log($"[Game] {_state} -> {state}");
+            _state = state;
         }
 
         private bool TryCreateLevel(out LevelModel level, out SolveResult result)
@@ -65,9 +170,9 @@ namespace BallGame.Core
 
                 if (result.IsSolvable)
                 {
-                    Debug.Log($"[Solver] seed {seed}: {result.Shots.Count} shots, " +
-                              $"V_min {result.MinVolume:0.000}, V0 {result.StartVolume:0.000}, " +
-                              $"r0 {result.StartRadius:0.00}, reserve {result.Reserve:P0}");
+                    Log($"[Solver] seed {seed}: {result.Shots.Count} shots, " +
+                        $"V_min {result.MinVolume:0.000}, V0 {result.StartVolume:0.000}, " +
+                        $"r0 {result.StartRadius:0.00}, reserve {result.Reserve:P0}");
                     return true;
                 }
 
@@ -78,6 +183,13 @@ namespace BallGame.Core
             level = null;
             result = SolveResult.Unsolvable;
             return false;
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
+        private static void Log(string message)
+        {
+            Debug.Log(message);
         }
 
         private void OnDrawGizmos()

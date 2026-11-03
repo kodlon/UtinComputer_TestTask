@@ -1,0 +1,10 @@
+namespace BallGame.Core
+{
+    public enum GameState
+    {
+        Boot,
+        Ready,
+        Charging,
+        Lose
+    }
+}
