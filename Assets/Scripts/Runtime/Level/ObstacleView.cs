@@ -37,12 +37,15 @@ namespace BallGame.Level
                 .OnComplete(OnExploded);
         }
 
-        public void Setup(Vector2 position, float radius, float height, Action<ObstacleView> exploded)
+        // The tilt pivots around the base so the obstacle stays planted on the ground.
+        public void Setup(Vector2 position, float radius, float height, Quaternion tilt, Material material, Action<ObstacleView> exploded)
         {
             _exploded = exploded;
             _baseScale = new Vector3(radius * 2f, height / CapsuleMeshHeight, radius * 2f);
+            _renderer.sharedMaterial = material;
 
-            transform.SetLocalPositionAndRotation(position.ToXZ(height * 0.5f), Quaternion.identity);
+            var center = position.ToXZ() + tilt * (Vector3.up * (height * 0.5f));
+            transform.SetLocalPositionAndRotation(center, tilt);
             transform.localScale = _baseScale;
         }
 

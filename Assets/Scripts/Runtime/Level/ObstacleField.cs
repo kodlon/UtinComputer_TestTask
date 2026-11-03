@@ -13,6 +13,14 @@ namespace BallGame.Level
         private ObstacleView _obstaclePrefab;
 
         [SerializeField]
+        [Tooltip("Idle look variants, picked at random per obstacle.")]
+        private Material[] _idleMaterials;
+
+        [SerializeField]
+        [Range(0f, 30f)]
+        private float _maxTilt = 10f;
+
+        [SerializeField]
         private ParticleSystem _explosion;
 
         [SerializeField]
@@ -31,13 +39,18 @@ namespace BallGame.Level
         {
             _level = level;
 
+            // Purely cosmetic randomness, seeded so the same level always looks the same.
+            var random = new System.Random(config.Seed);
+
             for (var i = 0; i < level.ObstacleCount; i++)
             {
                 var obstacle = level.GetObstacle(i);
                 var height = config.ObstacleHeight * obstacle.Radius / config.ObstacleRadius;
+                var tilt = Quaternion.Euler(NextSigned(random) * _maxTilt, (float)random.NextDouble() * 360f, NextSigned(random) * _maxTilt);
+                var material = _idleMaterials[random.Next(_idleMaterials.Length)];
 
                 var view = Instantiate(_obstaclePrefab, transform);
-                view.Setup(obstacle.Position, obstacle.Radius, height, OnObstacleExploded);
+                view.Setup(obstacle.Position, obstacle.Radius, height, tilt, material, OnObstacleExploded);
                 _views.Add(view);
             }
         }
@@ -52,6 +65,11 @@ namespace BallGame.Level
                 var hit = hits[i];
                 _views[hit.ObstacleIndex].Infect(hit.SpentEnergy / waveSpeed, explodeDelay);
             }
+        }
+
+        private static float NextSigned(System.Random random)
+        {
+            return (float)(random.NextDouble() * 2.0 - 1.0);
         }
 
         private void OnObstacleExploded(ObstacleView view)

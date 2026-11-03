@@ -269,6 +269,8 @@ namespace BallGame.Core
         {
             SetState(GameState.Win);
             _inputReader.SetEnabled(false);
+            _door.Celebrate();
+            _hud.HideHint();
             _result.ShowWin(LevelNumber, _player.Volume / _solveResult.StartVolume);
             Log($"[Game] Win with radius {_player.Radius:0.00} ({_player.Volume / _solveResult.StartVolume:P0} of start volume)");
         }
@@ -279,6 +281,7 @@ namespace BallGame.Core
             SetState(GameState.Lose);
             _charger.Cancel();
             _inputReader.SetEnabled(false);
+            _hud.HideHint();
             _result.ShowLose(reason);
             Log($"[Game] Lose: {reason}");
         }

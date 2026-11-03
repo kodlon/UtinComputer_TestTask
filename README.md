@@ -69,3 +69,7 @@ Everything lives in `Assets/Configs`:
 
 - **`GameBalanceConfig`:** sizes, charge, infection, movement, door distance, solver.
 - **`LevelConfig`:** seed, field size, start and door points, obstacle density.
+
+## Credits
+
+Third-party assets and their authors and licenses are listed in [CREDITS.md](CREDITS.md).

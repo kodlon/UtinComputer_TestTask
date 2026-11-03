@@ -11,6 +11,9 @@ namespace BallGame.Level
         private static readonly Vector3 OpenPunch = new(0.08f, 0.12f, 0.08f);
 
         [SerializeField]
+        private ParticleSystem _confetti;
+
+        [SerializeField]
         private Transform _leftLeaf;
 
         [SerializeField]
@@ -29,6 +32,11 @@ namespace BallGame.Level
         private float _openDistance;
 
         private Transform _visitor;
+
+        public void Celebrate()
+        {
+            _confetti.Play();
+        }
 
         public void Place(Vector2 position, Vector2 facing, Transform visitor, float openDistance)
         {
