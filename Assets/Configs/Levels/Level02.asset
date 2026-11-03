@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5a4c2f6d8212124b9a55966f452ff35, type: 3}
+  m_Name: Level02
+  m_EditorClassIdentifier: BallGame.Runtime::BallGame.Configs.LevelConfig
+  _seed: 12345
+  _fieldSize: {x: 12, y: 32}
+  _startPoint: {x: -3.5, y: 0}
+  _doorPoint: {x: 3.5, y: 28}
+  _startClearRadius: 2.5
+  _doorClearRadius: 3
+  _obstacleSpacing: 1.1
+  _obstacleJitter: 0.15
+  _obstacleRadius: 0.35
+  _obstacleRadiusVariation: 0.15
+  _obstacleHeight: 1.2

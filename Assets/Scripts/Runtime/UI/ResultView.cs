@@ -9,7 +9,10 @@ namespace BallGame.UI
     public sealed class ResultView : MonoBehaviour
     {
         [SerializeField]
-        private Button _restartButton;
+        private Button _nextButton;
+
+        [SerializeField]
+        private Button _retryButton;
 
         [SerializeField]
         private TMP_Text _subtitle;
@@ -17,7 +20,9 @@ namespace BallGame.UI
         [SerializeField]
         private TMP_Text _title;
 
-        public event Action RestartClicked;
+        public event Action NextClicked;
+
+        public event Action RetryClicked;
 
         public void Hide()
         {
@@ -33,33 +38,42 @@ namespace BallGame.UI
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null)
             };
 
-            Show(title, subtitle);
+            Show(title, subtitle, isWin: false);
         }
 
-        public void ShowWin(float sizeLeft)
+        public void ShowWin(int levelNumber, float sizeLeft)
         {
-            Show("Level complete!", $"Size left: {sizeLeft:P0}");
+            Show($"Level {levelNumber} complete!", $"Size left: {sizeLeft:P0}", isWin: true);
         }
 
         private void Awake()
         {
-            _restartButton.onClick.AddListener(OnRestartClicked);
+            _nextButton.onClick.AddListener(OnNextClicked);
+            _retryButton.onClick.AddListener(OnRetryClicked);
         }
 
         private void OnDestroy()
         {
-            _restartButton.onClick.RemoveListener(OnRestartClicked);
+            _nextButton.onClick.RemoveListener(OnNextClicked);
+            _retryButton.onClick.RemoveListener(OnRetryClicked);
         }
 
-        private void OnRestartClicked()
+        private void OnNextClicked()
         {
-            RestartClicked?.Invoke();
+            NextClicked?.Invoke();
         }
 
-        private void Show(string title, string subtitle)
+        private void OnRetryClicked()
+        {
+            RetryClicked?.Invoke();
+        }
+
+        private void Show(string title, string subtitle, bool isWin)
         {
             _title.text = title;
             _subtitle.text = subtitle;
+            _nextButton.gameObject.SetActive(isWin);
+            _retryButton.gameObject.SetActive(!isWin);
             gameObject.SetActive(true);
         }
     }

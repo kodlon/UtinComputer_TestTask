@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 namespace BallGame.UI
@@ -6,6 +7,9 @@ namespace BallGame.UI
     {
         [SerializeField]
         private GameObject _hint;
+
+        [SerializeField]
+        private TMP_Text _levelLabel;
 
         [SerializeField]
         private RectTransform _sizeFill;
@@ -19,8 +23,9 @@ namespace BallGame.UI
             _hint.SetActive(false);
         }
 
-        public void Initialize(float startRadius, float criticalRadius)
+        public void Initialize(int levelNumber, float startRadius, float criticalRadius)
         {
+            _levelLabel.text = $"LEVEL {levelNumber}";
             _startRadius = startRadius;
             _criticalRadius = criticalRadius;
             _hint.SetActive(true);

@@ -15,6 +15,13 @@ Unity Developer test task. The player ball sits at the bottom-left of the field 
 - **Door:** it opens when the ball is within 5 m.
 - **Lose:** holding for too long drains the ball below the critical size (*Overcharged*). You also lose when the path is blocked and the ball can no longer afford even the smallest shot (*Out of shots*).
 
+## Levels
+
+- **Level 1** is a short one-screen level (about 4 shots) that teaches the mechanic.
+- **Level 2** is the full-size level (about 18 shots).
+- **Level 3 and later** reuse the last config with a new seed, so the levels never run out.
+- Progress is saved in `PlayerPrefs`. To reset it in the editor, use the `GameManager` context menu → **Reset Level Progress**.
+
 ## Architecture
 
 ```

@@ -21,6 +21,9 @@ namespace BallGame.Core
 
         private const float ReachEpsilon = 0.001f;
 
+        // Levels past the configured list replay the last config; seeds step apart so regeneration attempts never overlap.
+        private const int SeedStepPerExtraLevel = 100;
+
         private const int TargetFrameRate = 60;
 
         [Header("Configs")]
@@ -28,7 +31,7 @@ namespace BallGame.Core
         private GameBalanceConfig _balanceConfig;
 
         [SerializeField]
-        private LevelConfig _levelConfig;
+        private LevelConfig[] _levels;
 
         [Header("Level")]
         [SerializeField]
@@ -69,11 +72,17 @@ namespace BallGame.Core
 
         private LevelModel _level;
 
+        private LevelConfig _levelConfig;
+
+        private int _levelIndex;
+
         private GameRules _rules;
 
         private SolveResult _solveResult;
 
         private GameState _state = GameState.Boot;
+
+        private int LevelNumber => _levelIndex + 1;
 
         private void Awake()
         {
@@ -90,7 +99,8 @@ namespace BallGame.Core
             _playerMover.MoveCompleted += OnMoveCompleted;
             _projectile.Arrived += OnProjectileArrived;
             _obstacleField.InfectionWaveCompleted += OnInfectionWaveCompleted;
-            _result.RestartClicked += OnRestartClicked;
+            _result.NextClicked += OnNextClicked;
+            _result.RetryClicked += OnRetryClicked;
         }
 
         private void OnDisable()
@@ -100,11 +110,15 @@ namespace BallGame.Core
             _playerMover.MoveCompleted -= OnMoveCompleted;
             _projectile.Arrived -= OnProjectileArrived;
             _obstacleField.InfectionWaveCompleted -= OnInfectionWaveCompleted;
-            _result.RestartClicked -= OnRestartClicked;
+            _result.NextClicked -= OnNextClicked;
+            _result.RetryClicked -= OnRetryClicked;
         }
 
         private void Start()
         {
+            _levelIndex = LevelProgress.CurrentIndex;
+            _levelConfig = _levels[Mathf.Min(_levelIndex, _levels.Length - 1)];
+
             if (!TryCreateLevel(out _level, out _solveResult))
             {
                 enabled = false;
@@ -117,7 +131,7 @@ namespace BallGame.Core
             _player.Initialize(_level.StartPoint, _solveResult.StartVolume);
             _door.Place(_level.DoorPoint, -_level.LaneDirection, _player.transform, _balanceConfig.DoorOpenDistance);
             _cameraFollow.SetTarget(_player.transform);
-            _hud.Initialize(_player.Radius, _balanceConfig.CriticalRadius);
+            _hud.Initialize(LevelNumber, _player.Radius, _balanceConfig.CriticalRadius);
             _result.Hide();
 
             // Roll up to the first obstacle exactly like the solver does, so its plan matches the real game.
@@ -240,7 +254,7 @@ namespace BallGame.Core
         {
             SetState(GameState.Win);
             _inputReader.SetEnabled(false);
-            _result.ShowWin(_player.Volume / _solveResult.StartVolume);
+            _result.ShowWin(LevelNumber, _player.Volume / _solveResult.StartVolume);
             Log($"[Game] Win with radius {_player.Radius:0.00} ({_player.Volume / _solveResult.StartVolume:P0} of start volume)");
         }
 
@@ -254,9 +268,26 @@ namespace BallGame.Core
             Log($"[Game] Lose: {reason}");
         }
 
-        private void OnRestartClicked()
+        private void OnNextClicked()
+        {
+            LevelProgress.Advance();
+            ReloadScene();
+        }
+
+        private void OnRetryClicked()
+        {
+            ReloadScene();
+        }
+
+        private static void ReloadScene()
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        [ContextMenu("Reset Level Progress")]
+        private void ResetLevelProgress()
+        {
+            LevelProgress.Reset();
         }
 
         private void SetState(GameState state)
@@ -268,16 +299,18 @@ namespace BallGame.Core
         private bool TryCreateLevel(out LevelModel level, out SolveResult result)
         {
             var solver = new LevelSolver(_balanceConfig, _rules);
+            var extraLevels = Mathf.Max(0, _levelIndex - (_levels.Length - 1));
+            var baseSeed = _levelConfig.Seed + extraLevels * SeedStepPerExtraLevel;
 
             for (var attempt = 0; attempt < _balanceConfig.MaxRegenerateAttempts; attempt++)
             {
-                var seed = _levelConfig.Seed + attempt;
+                var seed = baseSeed + attempt;
                 level = LevelGenerator.Generate(_levelConfig, seed, _balanceConfig.MaxChainGap);
                 result = solver.Solve(level);
 
                 if (result.IsSolvable)
                 {
-                    Log($"[Solver] seed {seed}: {result.Shots.Count} shots, " +
+                    Log($"[Solver] level {LevelNumber}, seed {seed}: {result.Shots.Count} shots, " +
                         $"V_min {result.MinVolume:0.000}, V0 {result.StartVolume:0.000}, " +
                         $"r0 {result.StartRadius:0.00}, reserve {result.Reserve:P0}");
                     return true;
