@@ -5094,6 +5094,7 @@ GameObject:
   - component: {fileID: 437551536}
   - component: {fileID: 437551535}
   - component: {fileID: 437551534}
+  - component: {fileID: 437551538}
   m_Layer: 0
   m_Name: PlayerBall
   m_TagString: Untagged
@@ -5185,6 +5186,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &437551538
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437551533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43ad798cc99a43643876e47466c97a54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BallGame.Runtime::BallGame.Player.PlayerMover
+  _player: {fileID: 437551534}
 --- !u!1 &589685805
 GameObject:
   m_ObjectHideFlags: 0
@@ -5348,6 +5362,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff89bdd9ff3f81745809d68880f09b50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BallGame.Runtime::BallGame.Level.Door
+  _leftLeaf: {fileID: 1569219058}
+  _rightLeaf: {fileID: 1992972974}
+  _openAngle: 100
+  _openDuration: 0.6
 --- !u!4 &1010268214
 Transform:
   m_ObjectHideFlags: 0
@@ -5934,6 +5952,7 @@ MonoBehaviour:
   _cameraFollow: {fileID: 2117181598}
   _inputReader: {fileID: 866657021}
   _player: {fileID: 437551534}
+  _playerMover: {fileID: 437551538}
   _projectile: {fileID: 2005113389}
 --- !u!4 &1798921669
 Transform:

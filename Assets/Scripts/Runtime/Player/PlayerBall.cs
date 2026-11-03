@@ -1,4 +1,3 @@
-using System;
 using BallGame.Common;
 using BallGame.Model;
 using UnityEngine;
@@ -7,8 +6,6 @@ namespace BallGame.Player
 {
     public sealed class PlayerBall : MonoBehaviour
     {
-        public event Action<float> RadiusChanged;
-
         public Vector2 Position => transform.position.ToPlanar();
 
         public float Radius { get; private set; }
@@ -21,9 +18,9 @@ namespace BallGame.Player
             SetVolume(volume);
         }
 
-        public void SetPosition(Vector2 position)
+        public void SetPosition(Vector2 position, float hopHeight = 0f)
         {
-            transform.position = position.ToXZ(Radius);
+            transform.position = position.ToXZ(Radius + hopHeight);
         }
 
         public void SetVolume(float volume)
@@ -34,8 +31,6 @@ namespace BallGame.Player
             // Keep the ball resting on the ground while it shrinks.
             transform.position = Position.ToXZ(Radius);
             transform.localScale = Vector3.one * (Radius * 2f);
-
-            RadiusChanged?.Invoke(Radius);
         }
     }
 }

@@ -15,6 +15,10 @@ namespace BallGame.Core
 {
     public sealed class GameManager : MonoBehaviour
     {
+        private const float MinMoveDistance = 0.05f;
+
+        private const float ReachEpsilon = 0.001f;
+
         private const int TargetFrameRate = 60;
 
         [Header("Configs")]
@@ -45,6 +49,9 @@ namespace BallGame.Core
         private PlayerBall _player;
 
         [SerializeField]
+        private PlayerMover _playerMover;
+
+        [SerializeField]
         private Projectile _projectile;
 
         private readonly List<InfectionHit> _infected = new();
@@ -64,13 +71,14 @@ namespace BallGame.Core
             Application.targetFrameRate = TargetFrameRate;
             _rules = new GameRules(_balanceConfig);
             _charger = new ShotCharger(_balanceConfig, _rules, _player, _projectile);
+            _playerMover.Initialize(_balanceConfig);
         }
 
         private void OnEnable()
         {
             _inputReader.PressStarted += OnPressStarted;
             _inputReader.PressReleased += OnPressReleased;
-            _player.RadiusChanged += OnPlayerRadiusChanged;
+            _playerMover.MoveCompleted += OnMoveCompleted;
             _projectile.Arrived += OnProjectileArrived;
             _obstacleField.InfectionWaveCompleted += OnInfectionWaveCompleted;
         }
@@ -79,7 +87,7 @@ namespace BallGame.Core
         {
             _inputReader.PressStarted -= OnPressStarted;
             _inputReader.PressReleased -= OnPressReleased;
-            _player.RadiusChanged -= OnPlayerRadiusChanged;
+            _playerMover.MoveCompleted -= OnMoveCompleted;
             _projectile.Arrived -= OnProjectileArrived;
             _obstacleField.InfectionWaveCompleted -= OnInfectionWaveCompleted;
         }
@@ -93,10 +101,10 @@ namespace BallGame.Core
             }
 
             _obstacleField.Build(_level, _levelConfig);
-            _door.Place(_level.DoorPoint, -_level.LaneDirection);
             _lanePath.Setup(_level.DoorPoint);
             _projectile.Hide();
             _player.Initialize(_level.StartPoint, _solveResult.StartVolume);
+            _door.Place(_level.DoorPoint, -_level.LaneDirection, _player.transform, _balanceConfig.DoorOpenDistance);
             _cameraFollow.SetTarget(_player.transform);
 
             SetState(GameState.Ready);
@@ -114,6 +122,14 @@ namespace BallGame.Core
             if (_charger.IsOvercharged)
             {
                 Lose(LoseReason.Overcharged);
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (_level != null)
+            {
+                _lanePath.Refresh(_player.Position, _player.Radius * 2f);
             }
         }
 
@@ -153,7 +169,7 @@ namespace BallGame.Core
         {
             if (_infected.Count == 0)
             {
-                SetState(GameState.Ready);
+                StartMove();
                 return;
             }
 
@@ -166,15 +182,48 @@ namespace BallGame.Core
             _obstacleField.PlayInfection(_infected, _balanceConfig.InfectWaveSpeed, _balanceConfig.ExplodeDelay);
         }
 
-        // Stage 8: back to aiming; moving the player forward arrives in stage 9.
         private void OnInfectionWaveCompleted()
         {
+            StartMove();
+        }
+
+        private void StartMove()
+        {
+            SetState(GameState.Moving);
+
+            var freeDistance = _rules.FreeDistance(_level, _player.Position, _player.Radius);
+
+            if (freeDistance < MinMoveDistance)
+            {
+                OnMoveCompleted();
+                return;
+            }
+
+            _playerMover.Move(_player.Position + _level.LaneDirection * freeDistance);
+        }
+
+        private void OnMoveCompleted()
+        {
+            if (Vector2.Distance(_player.Position, _level.DoorPoint) <= ReachEpsilon)
+            {
+                Win();
+                return;
+            }
+
+            if (!_rules.CanAffordShot(_player.Volume))
+            {
+                Lose(LoseReason.OutOfShots);
+                return;
+            }
+
             SetState(GameState.Ready);
         }
 
-        private void OnPlayerRadiusChanged(float radius)
+        private void Win()
         {
-            _lanePath.Refresh(_player.Position, radius * 2f);
+            SetState(GameState.Win);
+            _inputReader.SetEnabled(false);
+            Log($"[Game] Win with radius {_player.Radius:0.00} ({_player.Volume / _solveResult.StartVolume:P0} of start volume)");
         }
 
         private void Lose(LoseReason reason)

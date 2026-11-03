@@ -7,6 +7,8 @@ namespace BallGame.Core
         Charging,
         ShotInFlight,
         Resolving,
+        Moving,
+        Win,
         Lose
     }
 }
