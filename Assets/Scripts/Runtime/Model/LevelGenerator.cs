@@ -7,7 +7,7 @@ namespace BallGame.Model
 {
     public static class LevelGenerator
     {
-        public static LevelModel Generate(LevelConfig config, int seed)
+        public static LevelModel Generate(LevelConfig config, int seed, float neighbourGap)
         {
             var random = new Random(seed);
             var obstacles = new List<Obstacle>();
@@ -42,7 +42,7 @@ namespace BallGame.Model
                 }
             }
 
-            return new LevelModel(config.StartPoint, config.DoorPoint, obstacles.ToArray());
+            return new LevelModel(config.StartPoint, config.DoorPoint, obstacles.ToArray(), neighbourGap);
         }
 
         private static bool IsWithin(Vector2 point, Vector2 center, float radius)

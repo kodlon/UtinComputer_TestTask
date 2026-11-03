@@ -31,8 +31,7 @@ namespace BallGame.Core
 
         private GameRules _rules;
 
-        // Until the solver lands (stage 6) the lane is previewed with the max start radius.
-        private float PlayerRadius => _balanceConfig.MaxStartRadius;
+        private SolveResult _solveResult;
 
         private void Awake()
         {
@@ -42,45 +41,63 @@ namespace BallGame.Core
 
         private void Start()
         {
-            _level = LevelGenerator.Generate(_levelConfig, _levelConfig.Seed);
+            if (!TryCreateLevel(out _level, out _solveResult))
+            {
+                enabled = false;
+                return;
+            }
 
             _obstacleField.Build(_level, _levelConfig);
             _door.Place(_level.DoorPoint, -_level.LaneDirection);
             _lanePath.Setup(_level.DoorPoint);
-            _lanePath.Refresh(_level.StartPoint, PlayerRadius * 2f);
+            _lanePath.Refresh(_level.StartPoint, _solveResult.StartRadius * 2f);
+        }
+
+        private bool TryCreateLevel(out LevelModel level, out SolveResult result)
+        {
+            var solver = new LevelSolver(_balanceConfig, _rules);
+
+            for (var attempt = 0; attempt < _balanceConfig.MaxRegenerateAttempts; attempt++)
+            {
+                var seed = _levelConfig.Seed + attempt;
+                level = LevelGenerator.Generate(_levelConfig, seed, _balanceConfig.MaxChainGap);
+                result = solver.Solve(level);
+
+                if (result.IsSolvable)
+                {
+                    Debug.Log($"[Solver] seed {seed}: {result.Shots.Count} shots, " +
+                              $"V_min {result.MinVolume:0.000}, V0 {result.StartVolume:0.000}, " +
+                              $"r0 {result.StartRadius:0.00}, reserve {result.Reserve:P0}");
+                    return true;
+                }
+
+                Debug.LogWarning($"[Solver] seed {seed} is unsolvable within the size limits, regenerating.");
+            }
+
+            Debug.LogError($"[Solver] no solvable level after {_balanceConfig.MaxRegenerateAttempts} attempts. Tune LevelConfig.");
+            level = null;
+            result = SolveResult.Unsolvable;
+            return false;
         }
 
         private void OnDrawGizmos()
         {
-            if (_level == null)
+            if (_level == null || _solveResult == null)
             {
                 return;
             }
 
-            var halfWidth = _rules.CorridorHalfWidth(PlayerRadius);
-            var freeDistance = _rules.FreeDistance(_level, _level.StartPoint, PlayerRadius);
-            var stopPoint = _level.StartPoint + _level.LaneDirection * freeDistance;
-
             Gizmos.color = Color.yellow;
-            GizmoDraw.CorridorXZ(_level.StartPoint, _level.DoorPoint, halfWidth);
+            GizmoDraw.CorridorXZ(_level.StartPoint, _level.DoorPoint, _rules.CorridorHalfWidth(_solveResult.StartRadius));
 
-            Gizmos.color = Color.green;
-            GizmoDraw.CircleXZ(stopPoint, PlayerRadius);
-
-            var hasHit = _rules.TryFindFirstHit(
-                _level,
-                _level.StartPoint,
-                _level.LaneDirection,
-                halfWidth,
-                _level.LaneLength,
-                out var hitIndex,
-                out _);
-
-            if (hasHit)
+            foreach (var shot in _solveResult.Shots)
             {
-                var obstacle = _level.GetObstacle(hitIndex);
-                Gizmos.color = Color.red;
-                GizmoDraw.CircleXZ(obstacle.Position, obstacle.Radius + 0.05f);
+                Gizmos.color = Color.green;
+                GizmoDraw.CircleXZ(shot.PlayerPosition, 0.15f);
+
+                Gizmos.color = Color.magenta;
+                GizmoDraw.CircleXZ(shot.HitPoint, shot.ShotRadius);
+                Gizmos.DrawLine(shot.PlayerPosition.ToXZ(0.05f), shot.HitPoint.ToXZ(0.05f));
             }
         }
     }
