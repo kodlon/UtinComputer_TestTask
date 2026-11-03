@@ -64,19 +64,12 @@ namespace BallGame.Level
             }
         }
 
-        // Leaves swing away from the approaching ball: the door faces the ball, so "away" is local -Z.
         private void Open()
         {
             _leftLeaf.DOLocalRotate(new Vector3(0f, _openAngle, 0f), _openDuration).SetEase(Ease.OutBack).SetLink(gameObject);
             _rightLeaf.DOLocalRotate(new Vector3(0f, -_openAngle, 0f), _openDuration).SetEase(Ease.OutBack).SetLink(gameObject);
             transform.DOPunchScale(OpenPunch, PunchDuration, 6).SetLink(gameObject);
             Opened?.Invoke();
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            Gizmos.color = Color.white;
-            GizmoDraw.CircleXZ(transform.position.ToPlanar(), _openDistance);
         }
     }
 }

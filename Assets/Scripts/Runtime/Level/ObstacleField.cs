@@ -13,7 +13,6 @@ namespace BallGame.Level
         private ObstacleView _obstaclePrefab;
 
         [SerializeField]
-        [Tooltip("Idle look variants, picked at random per obstacle.")]
         private Material[] _idleMaterials;
 
         [SerializeField]
@@ -29,20 +28,15 @@ namespace BallGame.Level
 
         private readonly List<ObstacleView> _views = new();
 
-        private LevelModel _level;
-
         private int _pendingExplosions;
 
         public event Action InfectionWaveCompleted;
 
         public event Action ObstacleExploded;
 
-        public void Build(LevelModel level, LevelConfig config)
+        public void Build(LevelModel level, LevelConfig config, int seed)
         {
-            _level = level;
-
-            // Purely cosmetic randomness, seeded so the same level always looks the same.
-            var random = new System.Random(config.Seed);
+            var random = new System.Random(seed);
 
             for (var i = 0; i < level.ObstacleCount; i++)
             {
@@ -57,15 +51,15 @@ namespace BallGame.Level
             }
         }
 
-        // Each obstacle is infected after a delay proportional to the energy spent to reach it, so the wave follows the chain.
-        public void PlayInfection(IReadOnlyList<InfectionHit> hits, float waveSpeed, float explodeDelay)
+        public void PlayInfection(IReadOnlyList<int> indices, Vector2 impactPoint, float waveSpeed, float explodeDelay)
         {
-            _pendingExplosions += hits.Count;
+            _pendingExplosions += indices.Count;
 
-            for (var i = 0; i < hits.Count; i++)
+            foreach (var index in indices)
             {
-                var hit = hits[i];
-                _views[hit.ObstacleIndex].Infect(hit.SpentEnergy / waveSpeed, explodeDelay);
+                var view = _views[index];
+                var distance = Vector2.Distance(view.transform.position.ToPlanar(), impactPoint);
+                view.Infect(distance / waveSpeed, explodeDelay);
             }
         }
 
@@ -85,25 +79,6 @@ namespace BallGame.Level
             if (_pendingExplosions == 0)
             {
                 InfectionWaveCompleted?.Invoke();
-            }
-        }
-
-        private void OnDrawGizmos()
-        {
-            if (_level == null)
-            {
-                return;
-            }
-
-            Gizmos.color = Color.cyan;
-
-            for (var i = 0; i < _level.ObstacleCount; i++)
-            {
-                if (_level.IsAlive(i))
-                {
-                    var obstacle = _level.GetObstacle(i);
-                    GizmoDraw.CircleXZ(obstacle.Position, obstacle.Radius);
-                }
             }
         }
     }

@@ -7,7 +7,7 @@ namespace BallGame.Model
 {
     public static class LevelGenerator
     {
-        public static LevelModel Generate(LevelConfig config, int seed, float neighbourGap)
+        public static LevelModel Generate(LevelConfig config, int seed)
         {
             var random = new Random(seed);
             var obstacles = new List<Obstacle>();
@@ -23,7 +23,6 @@ namespace BallGame.Model
 
             for (var row = 0; row < rows; row++)
             {
-                // Staggered rows give a denser, less grid-like field.
                 var rowOffset = row % 2 == 0 ? 0.25f : 0.75f;
 
                 for (var column = 0; column < columns; column++)
@@ -43,7 +42,7 @@ namespace BallGame.Model
                 }
             }
 
-            return new LevelModel(config.StartPoint, config.DoorPoint, obstacles.ToArray(), neighbourGap);
+            return new LevelModel(config.StartPoint, config.DoorPoint, obstacles.ToArray());
         }
 
         private static bool IsWithin(Vector2 point, Vector2 center, float radius)

@@ -5,6 +5,9 @@ namespace BallGame.Level
 {
     public sealed class LanePath : MonoBehaviour
     {
+        // Shorter lanes are hidden: near the door the direction degenerates and LookRotation would complain.
+        private const float MinVisibleLength = 0.05f;
+
         [SerializeField]
         private Transform _strip;
 
@@ -23,16 +26,18 @@ namespace BallGame.Level
         {
             var delta = _end - from;
             var length = delta.magnitude;
-            var isVisible = length > Mathf.Epsilon;
+            var isVisible = length > MinVisibleLength;
 
-            _strip.gameObject.SetActive(isVisible);
+            if (_strip.gameObject.activeSelf != isVisible)
+            {
+                _strip.gameObject.SetActive(isVisible);
+            }
 
             if (!isVisible)
             {
                 return;
             }
 
-            // The quad lies in its local XY plane: tilt it flat, then align its local Y with the lane.
             var rotation = Quaternion.LookRotation(delta.ToXZ()) * Quaternion.Euler(90f, 0f, 0f);
             _strip.SetPositionAndRotation(((from + _end) * 0.5f).ToXZ(_groundOffset), rotation);
             _strip.localScale = new Vector3(width, length, 1f);

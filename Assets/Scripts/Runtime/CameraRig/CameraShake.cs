@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace BallGame.CameraRig
 {
-    // Lives on the camera itself while CameraFollow moves the parent rig, so shaking never fights the follow.
     public sealed class CameraShake : MonoBehaviour
     {
         private const int Vibrato = 18;
@@ -18,7 +17,6 @@ namespace BallGame.CameraRig
 
         private Tween _shake;
 
-        // Strength01 is clamped to [0, 1] and scaled by the max strength.
         public void Shake(float strength01)
         {
             _shake?.Complete();

@@ -5,10 +5,8 @@ using UnityEngine;
 
 namespace BallGame.Feedback
 {
-    // Listens to gameplay events and plays sounds and haptics; gameplay code knows nothing about audio.
     public sealed class GameFeedback : MonoBehaviour
     {
-        // A big wave pops dozens of obstacles in a moment; limit how often a pop sound starts.
         private const float PopInterval = 0.05f;
 
         [Header("Listened components")]
@@ -36,7 +34,6 @@ namespace BallGame.Feedback
 
         [Header("Clips")]
         [SerializeField]
-        [Tooltip("Short tick repeated while charging: faster and higher the longer the hold.")]
         private AudioClip _chargeTick;
 
         [SerializeField]
@@ -59,7 +56,6 @@ namespace BallGame.Feedback
 
         [Header("Tuning")]
         [SerializeField]
-        [Tooltip("Tick pitch and interval go from x to y over the charge ramp time.")]
         private Vector2 _chargePitch = new(0.9f, 2f);
 
         [SerializeField]

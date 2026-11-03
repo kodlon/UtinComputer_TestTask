@@ -7,7 +7,6 @@ namespace BallGame.Level
 {
     public sealed class ObstacleView : MonoBehaviour
     {
-        // Unity capsule mesh is 2 units tall and 1 unit wide at scale 1.
         private const float CapsuleMeshHeight = 2f;
 
         private const float InfectedSwell = 1.2f;
@@ -24,7 +23,6 @@ namespace BallGame.Level
 
         private Action<ObstacleView> _exploded;
 
-        // Swell up in the infected colour, then pop.
         public void Infect(float delay, float explodeDelay)
         {
             DOTween.Sequence()
@@ -37,7 +35,6 @@ namespace BallGame.Level
                 .OnComplete(OnExploded);
         }
 
-        // The tilt pivots around the base so the obstacle stays planted on the ground.
         public void Setup(Vector2 position, float radius, float height, Quaternion tilt, Material material, Action<ObstacleView> exploded)
         {
             _exploded = exploded;

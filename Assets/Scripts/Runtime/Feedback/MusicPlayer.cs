@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace BallGame.Feedback
 {
-    // Background music survives scene reloads (Retry / Next), so the track never restarts mid-session.
     [RequireComponent(typeof(AudioSource))]
     public sealed class MusicPlayer : MonoBehaviour
     {

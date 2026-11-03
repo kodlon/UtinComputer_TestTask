@@ -30,7 +30,6 @@ namespace BallGame.Player
             _config = config;
         }
 
-        // Equal hops along the lane centre with squash & stretch on take-off and landing.
         public void Move(Vector2 target)
         {
             var start = _player.Position;

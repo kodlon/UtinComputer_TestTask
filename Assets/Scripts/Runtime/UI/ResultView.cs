@@ -68,14 +68,23 @@ namespace BallGame.UI
             _retryButton.onClick.RemoveListener(OnRetryClicked);
         }
 
+        // The scene reloads a frame later, so a double tap must not fire twice (it would skip a level).
         private void OnNextClicked()
         {
+            SetButtonsInteractable(false);
             NextClicked?.Invoke();
         }
 
         private void OnRetryClicked()
         {
+            SetButtonsInteractable(false);
             RetryClicked?.Invoke();
+        }
+
+        private void SetButtonsInteractable(bool isInteractable)
+        {
+            _nextButton.interactable = isInteractable;
+            _retryButton.interactable = isInteractable;
         }
 
         private void Show(string title, string subtitle, bool isWin)
@@ -84,6 +93,7 @@ namespace BallGame.UI
             _subtitle.text = subtitle;
             _nextButton.gameObject.SetActive(isWin);
             _retryButton.gameObject.SetActive(!isWin);
+            SetButtonsInteractable(true);
             gameObject.SetActive(true);
             PlayAppear(isWin ? _nextButton.transform : _retryButton.transform);
         }

@@ -12,7 +12,6 @@ namespace BallGame.Player
         private static readonly Vector3 ChargeWobbleScale = new(1.06f, 0.94f, 1.06f);
 
         [SerializeField]
-        [Tooltip("Child that carries the mesh: squash & stretch is applied here, the root keeps the real size.")]
         private Transform _visual;
 
         private Tween _chargeTween;
@@ -55,7 +54,6 @@ namespace BallGame.Player
             Volume = Mathf.Max(0f, volume);
             Radius = VolumeMath.RadiusFromVolume(Volume);
 
-            // Keep the ball resting on the ground while it shrinks.
             transform.position = Position.ToXZ(Radius);
             transform.localScale = Vector3.one * (Radius * 2f);
         }

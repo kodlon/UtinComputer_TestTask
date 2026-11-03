@@ -12,7 +12,6 @@ namespace BallGame.UI
             Apply();
         }
 
-        // Safe area changes on rotation or when the simulator device changes.
         private void Update()
         {
             if (Screen.safeArea != _appliedArea)

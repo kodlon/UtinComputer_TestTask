@@ -7,6 +7,8 @@ namespace BallGame.Shooting
 {
     public sealed class Projectile : MonoBehaviour
     {
+        private const float MinFlightDuration = 0.18f;
+
         [SerializeField]
         private TrailRenderer _trail;
 
@@ -27,8 +29,10 @@ namespace BallGame.Shooting
             _trail.widthMultiplier = transform.localScale.x;
             _trail.emitting = true;
 
-            _flight = transform.DOMove(target.ToXZ(transform.position.y), speed)
-                .SetSpeedBased()
+            var destination = target.ToXZ(transform.position.y);
+            var duration = Mathf.Max(Vector3.Distance(transform.position, destination) / speed, MinFlightDuration);
+
+            _flight = transform.DOMove(destination, duration)
                 .SetEase(Ease.InQuad)
                 .SetLink(gameObject)
                 .OnComplete(OnArrived);

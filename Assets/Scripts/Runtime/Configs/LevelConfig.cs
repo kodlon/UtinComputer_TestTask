@@ -27,7 +27,6 @@ namespace BallGame.Configs
         [Header("Monument")]
         [SerializeField]
         [Min(0f)]
-        [Tooltip("Distance of the goal monument behind the door, along the lane direction.")]
         private float _monumentDistance = 3.4f;
 
         [SerializeField]
@@ -37,7 +36,6 @@ namespace BallGame.Configs
         [Header("Field")]
         [SerializeField]
         [Min(0f)]
-        [Tooltip("Obstacles fill the start-door bounds plus these paddings, so the camera never sees an empty floor.")]
         private float _sidePadding = 7.5f;
 
         [SerializeField]
@@ -55,7 +53,6 @@ namespace BallGame.Configs
 
         [SerializeField]
         [Min(0f)]
-        [Tooltip("Max random offset from the grid cell center.")]
         private float _obstacleJitter = 0.15f;
 
         [SerializeField]
@@ -64,20 +61,16 @@ namespace BallGame.Configs
 
         [SerializeField]
         [Range(0f, 0.5f)]
-        [Tooltip("Random radius variation (0.15 = ±15%).")]
         private float _obstacleRadiusVariation = 0.15f;
 
         [SerializeField]
         [Min(0.1f)]
         private float _obstacleHeight = 1.2f;
 
-        public float BackPadding => _backPadding;
-
         public float DoorClearRadius => _doorClearRadius;
 
         public Vector2 DoorPoint => _doorPoint;
 
-        // XZ rectangle filled with obstacles: start-door bounds plus paddings (the door is ahead along +Z).
         public Rect FieldBounds
         {
             get
@@ -87,10 +80,6 @@ namespace BallGame.Configs
                 return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
             }
         }
-
-        public float FrontPadding => _frontPadding;
-
-        public float LaneLength => Vector2.Distance(_startPoint, _doorPoint);
 
         public float MonumentClearRadius => _monumentClearRadius;
 
@@ -107,8 +96,6 @@ namespace BallGame.Configs
         public float ObstacleSpacing => _obstacleSpacing;
 
         public int Seed => _seed;
-
-        public float SidePadding => _sidePadding;
 
         public float StartClearRadius => _startClearRadius;
 

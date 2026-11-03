@@ -1,8 +1,8 @@
+using System;
 using UnityEngine;
 
 namespace BallGame.Feedback
 {
-    // Short vibrations with amplitude via VibrationEffect (Android 8+); Handheld.Vibrate on older devices.
     // Referencing Handheld.Vibrate also makes Unity add the VIBRATE permission to the manifest.
     public static class Haptics
     {
@@ -28,6 +28,8 @@ namespace BallGame.Feedback
 
         private static int _apiLevel;
 
+        private static AndroidJavaClass _effectClass;
+
         private static AndroidJavaObject _vibrator;
 
         private static void Vibrate(long milliseconds, int amplitude)
@@ -37,24 +39,32 @@ namespace BallGame.Feedback
                 return;
             }
 
-            if (_vibrator == null)
+            try
             {
-                using var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-                using var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
-                using var version = new AndroidJavaClass("android.os.Build$VERSION");
-                _vibrator = activity.Call<AndroidJavaObject>("getSystemService", "vibrator");
-                _apiLevel = version.GetStatic<int>("SDK_INT");
-            }
+                if (_vibrator == null)
+                {
+                    using var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+                    using var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+                    using var version = new AndroidJavaClass("android.os.Build$VERSION");
+                    _vibrator = activity.Call<AndroidJavaObject>("getSystemService", "vibrator");
+                    _apiLevel = version.GetStatic<int>("SDK_INT");
+                    _effectClass = _apiLevel >= VibrationEffectApiLevel ? new AndroidJavaClass("android.os.VibrationEffect") : null;
+                }
 
-            if (_apiLevel < VibrationEffectApiLevel)
+                if (_effectClass == null)
+                {
+                    Handheld.Vibrate();
+                    return;
+                }
+
+                using var effect = _effectClass.CallStatic<AndroidJavaObject>("createOneShot", milliseconds, amplitude);
+                _vibrator.Call("vibrate", effect);
+            }
+            catch (Exception exception)
             {
-                Handheld.Vibrate();
-                return;
+                IsEnabled = false;
+                Debug.LogWarning($"[Haptics] disabled: {exception.Message}");
             }
-
-            using var effectClass = new AndroidJavaClass("android.os.VibrationEffect");
-            using var effect = effectClass.CallStatic<AndroidJavaObject>("createOneShot", milliseconds, amplitude);
-            _vibrator.Call("vibrate", effect);
         }
 #else
         private static void Vibrate(long milliseconds, int amplitude)

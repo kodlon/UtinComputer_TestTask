@@ -13,46 +13,44 @@ MonoBehaviour:
   m_Name: GameBalanceConfig
   m_EditorClassIdentifier: BallGame.Runtime::BallGame.Configs.GameBalanceConfig
   _criticalRadius: 0.25
-  _minShotRadius: 0.08
-  _minStartRadius: 0.6
+  _minStartRadius: 0.5
   _maxStartRadius: 1.4
   _sizeReserve: 0.2
-  _chargeRate: 0.06
-  _chargeCurve:
+  _shotRadiusByHoldTime:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0.67
+      value: 0
+      inSlope: 0.8
+      outSlope: 0.8
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 0.35
+      inSlope: 0.5
+      outSlope: 0.5
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1.5
-      value: 2
-      inSlope: 0.67
-      outSlope: 4
+      value: 0.8
+      inSlope: 0.6
+      outSlope: 0.6
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 3
-      value: 8
-      inSlope: 4
-      outSlope: 12
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 4
-      value: 20
-      inSlope: 12
-      outSlope: 12
+      time: 2.5
+      value: 1.5
+      inSlope: 0.8
+      outSlope: 0.8
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -60,21 +58,17 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  _minChargeTime: 0.08
-  _infectionEnergyFactor: 7
-  _chainHopCost: 0.6
-  _chainGapCostFactor: 1
-  _maxChainGap: 0.6
-  _infectWaveSpeed: 8
-  _explodeDelay: 0.35
+  _minShotRadius: 0.35
+  _infectionRadiusFactor: 8
   _projectileSpeed: 14
+  _infectionWaveSpeed: 6
+  _explodeDelay: 0.35
   _hopLength: 1.2
   _hopHeight: 0.4
   _hopDuration: 0.25
-  _moveSafetyGap: 0.15
-  _laneSideMargin: 0.1
+  _moveSafetyGap: 1.5
+  _ballColliderScale: 0.95
   _doorOpenDistance: 5
-  _solverShotCandidates: 3
+  _solverShotCandidates: 6
+  _solverMaxShotRadius: 0.8
   _maxRegenerateAttempts: 10
-  _solverMinShotRadius: 0.3
-  _solverMaxShotRadius: 0.6

@@ -43,7 +43,6 @@ namespace BallGame.CameraRig
             transform.position = Vector3.SmoothDamp(transform.position, DesiredPosition(), ref _velocity, _smoothTime);
         }
 
-        // Follow the ground point under the target so the camera doesn't bob with hops or shrinking.
         private Vector3 Anchor()
         {
             var anchor = _target.position;
@@ -61,7 +60,6 @@ namespace BallGame.CameraRig
             return anchor.ToXZ() + _offset;
         }
 
-        // Where the four screen corners hit the ground, relative to the anchor, defines how far the anchor may move.
         private Rect ComputeAnchorBounds(Vector2 anchor, Rect field)
         {
             var ground = new Plane(Vector3.up, Vector3.zero);
@@ -85,7 +83,6 @@ namespace BallGame.CameraRig
             var min = field.min - minOffset;
             var max = field.max - maxOffset;
 
-            // A field narrower than the view can't be fully covered: keep the camera centred on it.
             if (min.x > max.x)
             {
                 min.x = max.x = (min.x + max.x) * 0.5f;

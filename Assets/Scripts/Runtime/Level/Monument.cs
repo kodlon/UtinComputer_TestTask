@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace BallGame.Level
 {
-    // The goal behind the door: a slowly spinning crown with a glowing flame on top.
     public sealed class Monument : MonoBehaviour
     {
         private const float CelebratePunch = 0.6f;

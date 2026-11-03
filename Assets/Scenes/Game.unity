@@ -14949,6 +14949,9 @@ MonoBehaviour:
   _hint: {fileID: 555233342}
   _levelLabel: {fileID: 1357506855}
   _sizeFill: {fileID: 848041530}
+  _sizeFillImage: {fileID: 848041531}
+  _dangerColor: {r: 1, g: 0.3, b: 0.25, a: 1}
+  _dangerThreshold: 0.25
 --- !u!1 &1872725131
 GameObject:
   m_ObjectHideFlags: 0

@@ -14,6 +14,8 @@ namespace BallGame.Input
 
         private PointerEventData _pointerEventData;
 
+        public event Action PressCancelled;
+
         public event Action PressReleased;
 
         public event Action PressStarted;
@@ -28,7 +30,7 @@ namespace BallGame.Input
                 return;
             }
 
-            Release();
+            Cancel();
             _input.Gameplay.Disable();
         }
 
@@ -46,7 +48,7 @@ namespace BallGame.Input
 
         private void OnDisable()
         {
-            Release();
+            Cancel();
             _input.Gameplay.Charge.started -= OnChargeStarted;
             _input.Gameplay.Charge.canceled -= OnChargeCanceled;
             _input.Gameplay.Disable();
@@ -61,7 +63,7 @@ namespace BallGame.Input
         {
             if (!hasFocus)
             {
-                Release();
+                Cancel();
             }
         }
 
@@ -69,7 +71,7 @@ namespace BallGame.Input
         {
             if (isPaused)
             {
-                Release();
+                Cancel();
             }
         }
 
@@ -87,6 +89,17 @@ namespace BallGame.Input
         private void OnChargeCanceled(InputAction.CallbackContext context)
         {
             Release();
+        }
+
+        private void Cancel()
+        {
+            if (!IsPressed)
+            {
+                return;
+            }
+
+            IsPressed = false;
+            PressCancelled?.Invoke();
         }
 
         private void Release()
