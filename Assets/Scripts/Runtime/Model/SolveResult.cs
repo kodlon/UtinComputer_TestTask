@@ -5,21 +5,28 @@ namespace BallGame.Model
 {
     public sealed class SolveResult
     {
-        public static readonly SolveResult Unsolvable = new(false, 0f, 0f, Array.Empty<SolverShot>());
+        public static readonly SolveResult Unsolvable = new();
 
-        public SolveResult(bool isSolvable, float minVolume, float startVolume, IReadOnlyList<SolverShot> shots)
+        public SolveResult(float minVolume, float startVolume, float reserve, IReadOnlyList<SolverShot> shots)
         {
-            IsSolvable = isSolvable;
+            IsSolvable = true;
             MinVolume = minVolume;
             StartVolume = startVolume;
+            Reserve = reserve;
             Shots = shots;
+        }
+
+        private SolveResult()
+        {
+            Shots = Array.Empty<SolverShot>();
         }
 
         public bool IsSolvable { get; }
 
         public float MinVolume { get; }
 
-        public float Reserve => MinVolume > 0f ? StartVolume / MinVolume - 1f : 0f;
+        // Volume left above the critical size at the door, relative to the volume the planned run needed.
+        public float Reserve { get; }
 
         public IReadOnlyList<SolverShot> Shots { get; }
 

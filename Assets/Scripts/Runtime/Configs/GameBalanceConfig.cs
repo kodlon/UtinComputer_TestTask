@@ -12,7 +12,7 @@ namespace BallGame.Configs
 
         [SerializeField]
         [Min(0.01f)]
-        [Tooltip("Smaller shots are cancelled and their volume is returned to the player.")]
+        [Tooltip("Smallest meaningful shot: when the player can't afford it, the game is lost.")]
         private float _minShotRadius = 0.08f;
 
         [SerializeField]
@@ -31,11 +31,21 @@ namespace BallGame.Configs
         [Header("Charge")]
         [SerializeField]
         [Min(0.001f)]
-        private float _baseChargeRate = 0.08f;
+        [Tooltip("Share of the current player volume moved into the shot per second, so charging feels the same at any size.")]
+        private float _chargeRate = 0.06f;
 
         [SerializeField]
         [Tooltip("Charge rate multiplier by hold time in seconds.")]
-        private AnimationCurve _chargeCurve = AnimationCurve.EaseInOut(0f, 1f, 1.5f, 3f);
+        private AnimationCurve _chargeCurve = new(
+            new Keyframe(0f, 1f, 0f, 0.67f),
+            new Keyframe(1.5f, 2f, 0.67f, 4f),
+            new Keyframe(3f, 8f, 4f, 12f),
+            new Keyframe(4f, 20f, 12f, 12f));
+
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Shorter presses are cancelled and their volume is returned to the player.")]
+        private float _minChargeTime = 0.08f;
 
         [Header("Infection")]
         [SerializeField]
@@ -100,28 +110,29 @@ namespace BallGame.Configs
         [SerializeField]
         [Min(2)]
         [Tooltip("Number of shot sizes the solver tries at each blocked step.")]
-        private int _solverShotCandidates = 8;
+        private int _solverShotCandidates = 3;
 
         [SerializeField]
         [Min(1)]
         private int _maxRegenerateAttempts = 10;
 
         [SerializeField]
-        [Range(0.05f, 1f)]
-        [Tooltip("Solver shots are limited to [min, max] * player radius, so its strategy stays human-like.")]
-        private float _solverMinShotRatio = 0.5f;
+        [Min(0.01f)]
+        [Tooltip("Solver shots stay within [min, max] radius: no pixel-perfect micro shots, no dumping the whole ball into one shot.")]
+        private float _solverMinShotRadius = 0.3f;
 
         [SerializeField]
-        [Range(0.1f, 1f)]
-        private float _solverMaxShotRatio = 0.65f;
+        [Min(0.01f)]
+        private float _solverMaxShotRadius = 0.6f;
 
-        public float BaseChargeRate => _baseChargeRate;
 
         public float ChainGapCostFactor => _chainGapCostFactor;
 
         public float ChainHopCost => _chainHopCost;
 
         public AnimationCurve ChargeCurve => _chargeCurve;
+
+        public float ChargeRate => _chargeRate;
 
         public float CriticalRadius => _criticalRadius;
 
@@ -147,6 +158,8 @@ namespace BallGame.Configs
 
         public float MaxStartRadius => _maxStartRadius;
 
+        public float MinChargeTime => _minChargeTime;
+
         public float MinShotRadius => _minShotRadius;
 
         public float MinStartRadius => _minStartRadius;
@@ -157,9 +170,9 @@ namespace BallGame.Configs
 
         public float SizeReserve => _sizeReserve;
 
-        public float SolverMaxShotRatio => _solverMaxShotRatio;
+        public float SolverMaxShotRadius => _solverMaxShotRadius;
 
-        public float SolverMinShotRatio => _solverMinShotRatio;
+        public float SolverMinShotRadius => _solverMinShotRadius;
 
         public int SolverShotCandidates => _solverShotCandidates;
 
@@ -167,6 +180,7 @@ namespace BallGame.Configs
         {
             _minStartRadius = Mathf.Max(_minStartRadius, _criticalRadius);
             _maxStartRadius = Mathf.Max(_maxStartRadius, _minStartRadius);
+            _solverMaxShotRadius = Mathf.Max(_solverMaxShotRadius, _solverMinShotRadius);
         }
     }
 }

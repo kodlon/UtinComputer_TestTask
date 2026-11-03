@@ -17,7 +17,7 @@ MonoBehaviour:
   _minStartRadius: 0.6
   _maxStartRadius: 1.4
   _sizeReserve: 0.2
-  _baseChargeRate: 0.08
+  _chargeRate: 0.06
   _chargeCurve:
     serializedVersion: 2
     m_Curve:
@@ -25,16 +25,34 @@ MonoBehaviour:
       time: 0
       value: 1
       inSlope: 0
-      outSlope: 0
+      outSlope: 0.67
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1.5
-      value: 3
-      inSlope: 0
-      outSlope: 0
+      value: 2
+      inSlope: 0.67
+      outSlope: 4
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 3
+      value: 8
+      inSlope: 4
+      outSlope: 12
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 4
+      value: 20
+      inSlope: 12
+      outSlope: 12
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -42,6 +60,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  _minChargeTime: 0.08
   _infectionEnergyFactor: 7
   _chainHopCost: 0.6
   _chainGapCostFactor: 1
@@ -55,7 +74,7 @@ MonoBehaviour:
   _moveSafetyGap: 0.15
   _laneSideMargin: 0.1
   _doorOpenDistance: 5
-  _solverShotCandidates: 8
+  _solverShotCandidates: 3
   _maxRegenerateAttempts: 10
-  _solverMinShotRatio: 0.5
-  _solverMaxShotRatio: 0.65
+  _solverMinShotRadius: 0.3
+  _solverMaxShotRadius: 0.6

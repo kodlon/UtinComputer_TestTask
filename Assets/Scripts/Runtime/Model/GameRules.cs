@@ -25,9 +25,10 @@ namespace BallGame.Model
             return MaxShotVolume(playerVolume) > VolumeMath.VolumeFromRadius(_config.MinShotRadius);
         }
 
+        // Share of the current player volume transferred per second.
         public float ChargeRate(float holdTime)
         {
-            return _config.BaseChargeRate * _config.ChargeCurve.Evaluate(holdTime);
+            return _config.ChargeRate * _config.ChargeCurve.Evaluate(holdTime);
         }
 
         public float CorridorHalfWidth(float playerRadius)

@@ -52,19 +52,19 @@ namespace BallGame.Player
         {
             _holdTime += deltaTime;
 
-            var transfer = Mathf.Min(_rules.ChargeRate(_holdTime) * deltaTime, _player.Volume);
+            var transfer = _rules.ChargeRate(_holdTime) * deltaTime * _player.Volume;
             _player.SetVolume(_player.Volume - transfer);
             _shotVolume += transfer;
 
             _projectile.Place(ShotPosition(), ShotRadius);
         }
 
-        // A tap that produced a too small shot is cancelled and the volume goes back to the player.
+        // An accidental short tap is cancelled and the volume goes back to the player.
         public bool TryRelease(out float shotRadius)
         {
             shotRadius = ShotRadius;
 
-            if (shotRadius >= _config.MinShotRadius)
+            if (_holdTime >= _config.MinChargeTime)
             {
                 _shotVolume = 0f;
                 return true;

@@ -120,7 +120,8 @@ namespace BallGame.Core
             _hud.Initialize(_player.Radius, _balanceConfig.CriticalRadius);
             _result.Hide();
 
-            SetState(GameState.Ready);
+            // Roll up to the first obstacle exactly like the solver does, so its plan matches the real game.
+            StartMove();
         }
 
         private void Update()
