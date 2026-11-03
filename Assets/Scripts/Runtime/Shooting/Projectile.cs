@@ -1,30 +1,37 @@
 using System;
 using BallGame.Common;
+using DG.Tweening;
 using UnityEngine;
 
 namespace BallGame.Shooting
 {
     public sealed class Projectile : MonoBehaviour
     {
-        private bool _isFlying;
+        [SerializeField]
+        private TrailRenderer _trail;
 
-        private float _speed;
-
-        private Vector3 _target;
+        private Tween _flight;
 
         public event Action Arrived;
 
         public void Hide()
         {
-            _isFlying = false;
+            _flight?.Kill();
+            _trail.emitting = false;
             gameObject.SetActive(false);
         }
 
         public void Launch(Vector2 target, float speed)
         {
-            _target = target.ToXZ(transform.position.y);
-            _speed = speed;
-            _isFlying = true;
+            _trail.Clear();
+            _trail.widthMultiplier = transform.localScale.x;
+            _trail.emitting = true;
+
+            _flight = transform.DOMove(target.ToXZ(transform.position.y), speed)
+                .SetSpeedBased()
+                .SetEase(Ease.InQuad)
+                .SetLink(gameObject)
+                .OnComplete(OnArrived);
         }
 
         public void Place(Vector2 position, float radius)
@@ -35,24 +42,14 @@ namespace BallGame.Shooting
 
         public void Show(Vector2 position, float radius)
         {
+            _trail.emitting = false;
+            _trail.Clear();
             gameObject.SetActive(true);
             Place(position, radius);
         }
 
-        private void Update()
+        private void OnArrived()
         {
-            if (!_isFlying)
-            {
-                return;
-            }
-
-            transform.position = Vector3.MoveTowards(transform.position, _target, _speed * Time.deltaTime);
-
-            if (transform.position != _target)
-            {
-                return;
-            }
-
             Hide();
             Arrived?.Invoke();
         }

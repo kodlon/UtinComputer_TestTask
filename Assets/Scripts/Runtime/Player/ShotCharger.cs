@@ -40,12 +40,14 @@ namespace BallGame.Player
             _holdTime = 0f;
             _shotVolume = 0f;
             _projectile.Show(ShotPosition(), 0f);
+            _player.SetCharging(true);
         }
 
         public void Cancel()
         {
             _shotVolume = 0f;
             _projectile.Hide();
+            _player.SetCharging(false);
         }
 
         public void Tick(float deltaTime)
@@ -67,6 +69,7 @@ namespace BallGame.Player
             if (_holdTime >= _config.MinChargeTime)
             {
                 _shotVolume = 0f;
+                _player.SetCharging(false);
                 return true;
             }
 

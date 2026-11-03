@@ -1,5 +1,6 @@
 using System;
 using BallGame.Core;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +9,15 @@ namespace BallGame.UI
 {
     public sealed class ResultView : MonoBehaviour
     {
+        private const float ButtonDelay = 0.25f;
+
+        private const float FadeDuration = 0.25f;
+
+        private const float PopDuration = 0.4f;
+
+        [SerializeField]
+        private CanvasGroup _group;
+
         [SerializeField]
         private Button _nextButton;
 
@@ -75,6 +85,20 @@ namespace BallGame.UI
             _nextButton.gameObject.SetActive(isWin);
             _retryButton.gameObject.SetActive(!isWin);
             gameObject.SetActive(true);
+            PlayAppear(isWin ? _nextButton.transform : _retryButton.transform);
+        }
+
+        private void PlayAppear(Transform button)
+        {
+            _group.alpha = 0f;
+            _title.transform.localScale = Vector3.one * 0.6f;
+            button.localScale = Vector3.zero;
+
+            DOTween.Sequence()
+                .Append(DOTween.To(() => _group.alpha, alpha => _group.alpha = alpha, 1f, FadeDuration))
+                .Join(_title.transform.DOScale(1f, PopDuration).SetEase(Ease.OutBack))
+                .Insert(ButtonDelay, button.DOScale(1f, PopDuration).SetEase(Ease.OutBack))
+                .SetLink(gameObject);
         }
     }
 }

@@ -9,6 +9,7 @@ using BallGame.Model;
 using BallGame.Player;
 using BallGame.Shooting;
 using BallGame.UI;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
@@ -25,6 +26,13 @@ namespace BallGame.Core
         private const int SeedStepPerExtraLevel = 100;
 
         private const int TargetFrameRate = 60;
+
+        // Infected obstacle count that gives the strongest camera shake.
+        private const float FullShakeInfectedCount = 12f;
+
+        private const int TweenCapacity = 500;
+
+        private const int SequenceCapacity = 300;
 
         [Header("Configs")]
         [SerializeField]
@@ -46,6 +54,9 @@ namespace BallGame.Core
         [Header("Gameplay")]
         [SerializeField]
         private CameraFollow _cameraFollow;
+
+        [SerializeField]
+        private CameraShake _cameraShake;
 
         [SerializeField]
         private InputReader _inputReader;
@@ -87,6 +98,9 @@ namespace BallGame.Core
         private void Awake()
         {
             Application.targetFrameRate = TargetFrameRate;
+            DOTween.Init(recycleAllByDefault: false, useSafeMode: true, LogBehaviour.ErrorsOnly)
+                .SetCapacity(TweenCapacity, SequenceCapacity);
+
             _rules = new GameRules(_balanceConfig);
             _charger = new ShotCharger(_balanceConfig, _rules, _player, _projectile);
             _playerMover.Initialize(_balanceConfig);
@@ -210,6 +224,7 @@ namespace BallGame.Core
             }
 
             SetState(GameState.Resolving);
+            _cameraShake.Shake(_infected.Count / FullShakeInfectedCount);
             _obstacleField.PlayInfection(_infected, _balanceConfig.InfectWaveSpeed, _balanceConfig.ExplodeDelay);
         }
 

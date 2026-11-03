@@ -1,11 +1,15 @@
-using System.Collections;
 using BallGame.Common;
+using DG.Tweening;
 using UnityEngine;
 
 namespace BallGame.Level
 {
     public sealed class Door : MonoBehaviour
     {
+        private const float PunchDuration = 0.4f;
+
+        private static readonly Vector3 OpenPunch = new(0.08f, 0.12f, 0.08f);
+
         [SerializeField]
         private Transform _leftLeaf;
 
@@ -45,26 +49,16 @@ namespace BallGame.Level
             if (distance <= _openDistance)
             {
                 _isOpen = true;
-                StartCoroutine(OpenRoutine());
+                Open();
             }
         }
 
         // Leaves swing away from the approaching ball: the door faces the ball, so "away" is local -Z.
-        private IEnumerator OpenRoutine()
+        private void Open()
         {
-            var leftOpen = Quaternion.Euler(0f, _openAngle, 0f);
-            var rightOpen = Quaternion.Euler(0f, -_openAngle, 0f);
-
-            for (var time = 0f; time < _openDuration; time += Time.deltaTime)
-            {
-                var progress = Mathf.SmoothStep(0f, 1f, time / _openDuration);
-                _leftLeaf.localRotation = Quaternion.Slerp(Quaternion.identity, leftOpen, progress);
-                _rightLeaf.localRotation = Quaternion.Slerp(Quaternion.identity, rightOpen, progress);
-                yield return null;
-            }
-
-            _leftLeaf.localRotation = leftOpen;
-            _rightLeaf.localRotation = rightOpen;
+            _leftLeaf.DOLocalRotate(new Vector3(0f, _openAngle, 0f), _openDuration).SetEase(Ease.OutBack).SetLink(gameObject);
+            _rightLeaf.DOLocalRotate(new Vector3(0f, -_openAngle, 0f), _openDuration).SetEase(Ease.OutBack).SetLink(gameObject);
+            transform.DOPunchScale(OpenPunch, PunchDuration, 6).SetLink(gameObject);
         }
 
         private void OnDrawGizmosSelected()

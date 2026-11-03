@@ -1,6 +1,6 @@
 using System;
-using System.Collections;
 using BallGame.Common;
+using DG.Tweening;
 using UnityEngine;
 
 namespace BallGame.Level
@@ -10,7 +10,9 @@ namespace BallGame.Level
         // Unity capsule mesh is 2 units tall and 1 unit wide at scale 1.
         private const float CapsuleMeshHeight = 2f;
 
-        private const float InfectedSwell = 1.15f;
+        private const float InfectedSwell = 1.2f;
+
+        private const float PopDuration = 0.12f;
 
         [SerializeField]
         private Material _infectedMaterial;
@@ -22,9 +24,17 @@ namespace BallGame.Level
 
         private Action<ObstacleView> _exploded;
 
+        // Swell up in the infected colour, then pop.
         public void Infect(float delay, float explodeDelay)
         {
-            StartCoroutine(InfectRoutine(delay, explodeDelay));
+            DOTween.Sequence()
+                .AppendInterval(delay)
+                .AppendCallback(OnInfected)
+                .Append(transform.DOScale(_baseScale * InfectedSwell, explodeDelay).SetEase(Ease.OutBack))
+                .Join(transform.DOShakeRotation(explodeDelay, 8f, 12))
+                .Append(transform.DOScale(Vector3.zero, PopDuration).SetEase(Ease.InBack))
+                .SetLink(gameObject)
+                .OnComplete(OnExploded);
         }
 
         public void Setup(Vector2 position, float radius, float height, Action<ObstacleView> exploded)
@@ -36,20 +46,15 @@ namespace BallGame.Level
             transform.localScale = _baseScale;
         }
 
-        private IEnumerator InfectRoutine(float delay, float explodeDelay)
+        private void OnExploded()
         {
-            yield return new WaitForSeconds(delay);
-
-            _renderer.sharedMaterial = _infectedMaterial;
-
-            for (var time = 0f; time < explodeDelay; time += Time.deltaTime)
-            {
-                transform.localScale = _baseScale * Mathf.Lerp(1f, InfectedSwell, time / explodeDelay);
-                yield return null;
-            }
-
             gameObject.SetActive(false);
             _exploded?.Invoke(this);
+        }
+
+        private void OnInfected()
+        {
+            _renderer.sharedMaterial = _infectedMaterial;
         }
     }
 }
