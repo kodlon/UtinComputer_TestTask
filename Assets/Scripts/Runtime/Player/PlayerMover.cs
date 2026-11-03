@@ -21,6 +21,8 @@ namespace BallGame.Player
 
         private GameBalanceConfig _config;
 
+        public event Action HopLanded;
+
         public event Action MoveCompleted;
 
         public void Initialize(GameBalanceConfig config)
@@ -44,11 +46,17 @@ namespace BallGame.Player
                 sequence.Append(_player.transform.DOJump(landing, _config.HopHeight, 1, duration).SetEase(Ease.Linear));
                 sequence.Join(visual.DOScale(TakeOffStretch, duration * StretchShare).SetEase(Ease.OutQuad));
                 sequence.Insert(sequence.Duration() - duration * (1f - StretchShare), visual.DOScale(Vector3.one, duration * (1f - StretchShare)).SetEase(Ease.InQuad));
+                sequence.AppendCallback(OnHopLanded);
                 sequence.Append(visual.DOScale(LandingSquash, LandingDuration * 0.4f).SetEase(Ease.OutQuad));
                 sequence.Append(visual.DOScale(Vector3.one, LandingDuration * 0.6f).SetEase(Ease.OutBack));
             }
 
             sequence.OnComplete(OnMoveCompleted);
+        }
+
+        private void OnHopLanded()
+        {
+            HopLanded?.Invoke();
         }
 
         private void OnMoveCompleted()

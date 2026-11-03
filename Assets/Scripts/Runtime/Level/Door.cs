@@ -1,3 +1,4 @@
+using System;
 using BallGame.Common;
 using DG.Tweening;
 using UnityEngine;
@@ -33,6 +34,8 @@ namespace BallGame.Level
 
         private Transform _visitor;
 
+        public event Action Opened;
+
         public void Celebrate()
         {
             _confetti.Play();
@@ -67,6 +70,7 @@ namespace BallGame.Level
             _leftLeaf.DOLocalRotate(new Vector3(0f, _openAngle, 0f), _openDuration).SetEase(Ease.OutBack).SetLink(gameObject);
             _rightLeaf.DOLocalRotate(new Vector3(0f, -_openAngle, 0f), _openDuration).SetEase(Ease.OutBack).SetLink(gameObject);
             transform.DOPunchScale(OpenPunch, PunchDuration, 6).SetLink(gameObject);
+            Opened?.Invoke();
         }
 
         private void OnDrawGizmosSelected()

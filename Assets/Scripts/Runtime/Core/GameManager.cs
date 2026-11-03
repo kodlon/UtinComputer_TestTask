@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using BallGame.CameraRig;
@@ -92,6 +93,8 @@ namespace BallGame.Core
         private SolveResult _solveResult;
 
         private GameState _state = GameState.Boot;
+
+        public event Action<GameState> StateChanged;
 
         private int LevelNumber => _levelIndex + 1;
 
@@ -312,6 +315,7 @@ namespace BallGame.Core
         {
             Log($"[Game] {_state} -> {state}");
             _state = state;
+            StateChanged?.Invoke(state);
         }
 
         private bool TryCreateLevel(out LevelModel level, out SolveResult result)

@@ -35,6 +35,8 @@ namespace BallGame.Level
 
         public event Action InfectionWaveCompleted;
 
+        public event Action ObstacleExploded;
+
         public void Build(LevelModel level, LevelConfig config)
         {
             _level = level;
@@ -76,6 +78,7 @@ namespace BallGame.Level
         {
             _explosion.transform.position = view.transform.position;
             _explosion.Emit(_explosionParticles);
+            ObstacleExploded?.Invoke();
 
             _pendingExplosions--;
 
