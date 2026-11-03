@@ -11,10 +11,6 @@ namespace BallGame.Configs
 
         [Header("Layout")]
         [SerializeField]
-        [Tooltip("Ground plane XZ: x = width, y = length.")]
-        private Vector2 _fieldSize = new(12f, 32f);
-
-        [SerializeField]
         private Vector2 _startPoint = new(-3.5f, 0f);
 
         [SerializeField]
@@ -27,6 +23,30 @@ namespace BallGame.Configs
         [SerializeField]
         [Min(0f)]
         private float _doorClearRadius = 3f;
+
+        [Header("Monument")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Distance of the goal monument behind the door, along the lane direction.")]
+        private float _monumentDistance = 3.4f;
+
+        [SerializeField]
+        [Min(0f)]
+        private float _monumentClearRadius = 2.2f;
+
+        [Header("Field")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Obstacles fill the start-door bounds plus these paddings, so the camera never sees an empty floor.")]
+        private float _sidePadding = 7.5f;
+
+        [SerializeField]
+        [Min(0f)]
+        private float _backPadding = 6f;
+
+        [SerializeField]
+        [Min(0f)]
+        private float _frontPadding = 14f;
 
         [Header("Obstacles")]
         [SerializeField]
@@ -51,13 +71,30 @@ namespace BallGame.Configs
         [Min(0.1f)]
         private float _obstacleHeight = 1.2f;
 
+        public float BackPadding => _backPadding;
+
         public float DoorClearRadius => _doorClearRadius;
 
         public Vector2 DoorPoint => _doorPoint;
 
-        public Vector2 FieldSize => _fieldSize;
+        // XZ rectangle filled with obstacles: start-door bounds plus paddings (the door is ahead along +Z).
+        public Rect FieldBounds
+        {
+            get
+            {
+                var min = Vector2.Min(_startPoint, _doorPoint) - new Vector2(_sidePadding, _backPadding);
+                var max = Vector2.Max(_startPoint, _doorPoint) + new Vector2(_sidePadding, _frontPadding);
+                return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+            }
+        }
+
+        public float FrontPadding => _frontPadding;
 
         public float LaneLength => Vector2.Distance(_startPoint, _doorPoint);
+
+        public float MonumentClearRadius => _monumentClearRadius;
+
+        public Vector2 MonumentPoint => _doorPoint + (_doorPoint - _startPoint).normalized * _monumentDistance;
 
         public float ObstacleHeight => _obstacleHeight;
 
@@ -70,6 +107,8 @@ namespace BallGame.Configs
         public float ObstacleSpacing => _obstacleSpacing;
 
         public int Seed => _seed;
+
+        public float SidePadding => _sidePadding;
 
         public float StartClearRadius => _startClearRadius;
 

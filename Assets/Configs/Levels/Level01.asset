@@ -13,11 +13,15 @@ MonoBehaviour:
   m_Name: Level01
   m_EditorClassIdentifier: BallGame.Runtime::BallGame.Configs.LevelConfig
   _seed: 101
-  _fieldSize: {x: 9, y: 12.5}
   _startPoint: {x: -2, y: 0}
-  _doorPoint: {x: 2, y: 9.5}
+  _doorPoint: {x: 2, y: 8.5}
   _startClearRadius: 2
   _doorClearRadius: 2.5
+  _monumentDistance: 2.6
+  _monumentClearRadius: 2.2
+  _sidePadding: 7.5
+  _backPadding: 6
+  _frontPadding: 14
   _obstacleSpacing: 1.1
   _obstacleJitter: 0.15
   _obstacleRadius: 0.35

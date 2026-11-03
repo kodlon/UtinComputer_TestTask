@@ -13,10 +13,10 @@ namespace BallGame.Model
             var obstacles = new List<Obstacle>();
 
             var spacing = config.ObstacleSpacing;
-            var fieldCenter = (config.StartPoint + config.DoorPoint) * 0.5f;
-            var fieldMin = fieldCenter - config.FieldSize * 0.5f;
-            var columns = Mathf.FloorToInt(config.FieldSize.x / spacing);
-            var rows = Mathf.FloorToInt(config.FieldSize.y / spacing);
+            var field = config.FieldBounds;
+            var fieldMin = field.min;
+            var columns = Mathf.FloorToInt(field.width / spacing);
+            var rows = Mathf.FloorToInt(field.height / spacing);
 
             var maxRadius = config.ObstacleRadius * (1f + config.ObstacleRadiusVariation);
             var jitter = Mathf.Min(config.ObstacleJitter, Mathf.Max(0f, spacing * 0.5f - maxRadius));
@@ -32,7 +32,8 @@ namespace BallGame.Model
                     var position = cellCenter + new Vector2(NextSigned(random), NextSigned(random)) * jitter;
 
                     if (IsWithin(position, config.StartPoint, config.StartClearRadius)
-                        || IsWithin(position, config.DoorPoint, config.DoorClearRadius))
+                        || IsWithin(position, config.DoorPoint, config.DoorClearRadius)
+                        || IsWithin(position, config.MonumentPoint, config.MonumentClearRadius))
                     {
                         continue;
                     }

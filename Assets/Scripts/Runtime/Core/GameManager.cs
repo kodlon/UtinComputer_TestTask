@@ -50,6 +50,9 @@ namespace BallGame.Core
         private LanePath _lanePath;
 
         [SerializeField]
+        private Monument _monument;
+
+        [SerializeField]
         private ObstacleField _obstacleField;
 
         [Header("Gameplay")]
@@ -147,7 +150,8 @@ namespace BallGame.Core
             _projectile.Hide();
             _player.Initialize(_level.StartPoint, _solveResult.StartVolume);
             _door.Place(_level.DoorPoint, -_level.LaneDirection, _player.transform, _balanceConfig.DoorOpenDistance);
-            _cameraFollow.SetTarget(_player.transform);
+            _monument.Place(_levelConfig.MonumentPoint, -_level.LaneDirection);
+            _cameraFollow.SetTarget(_player.transform, _levelConfig.FieldBounds);
             _hud.Initialize(LevelNumber, _player.Radius, _balanceConfig.CriticalRadius);
             _result.Hide();
 
@@ -273,6 +277,7 @@ namespace BallGame.Core
             SetState(GameState.Win);
             _inputReader.SetEnabled(false);
             _door.Celebrate();
+            _monument.Celebrate();
             _hud.HideHint();
             _result.ShowWin(LevelNumber, _player.Volume / _solveResult.StartVolume);
             Log($"[Game] Win with radius {_player.Radius:0.00} ({_player.Volume / _solveResult.StartVolume:P0} of start volume)");
