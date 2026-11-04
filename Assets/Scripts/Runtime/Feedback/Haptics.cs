@@ -1,3 +1,8 @@
+#if UNITY_ANDROID && !UNITY_EDITOR
+using System;
+using UnityEngine;
+#endif
+
 namespace BallGame.Feedback
 {
     // Referencing Handheld.Vibrate also makes Unity add the VIBRATE permission to the manifest.
