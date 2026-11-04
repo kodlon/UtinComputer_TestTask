@@ -5,7 +5,7 @@ Unity Developer test task. The player ball sits at the bottom-left of the field 
 - **Unity:** 6000.3.27f2, URP, New Input System
 - **Platform:** Android (portrait)
 - **Build:** `Builds/InfectionBall.apk`
-- **Video:** _link_
+- **Video:** https://www.youtube.com/shorts/R5SxKKS9_tM
 
 ## How to play
 
