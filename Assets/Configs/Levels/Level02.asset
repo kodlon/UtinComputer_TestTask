@@ -27,3 +27,8 @@ MonoBehaviour:
   _obstacleRadius: 0.35
   _obstacleRadiusVariation: 0.15
   _obstacleHeight: 1.2
+  _clusterLength: {x: 2.5, y: 5}
+  _gladeLength: {x: 3.5, y: 6}
+  _gladeHalfWidth: 2.6
+  _loneSpacing: 2.5
+  _loneOffset: 0.35

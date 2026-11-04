@@ -67,6 +67,28 @@ namespace BallGame.Configs
         [Min(0.1f)]
         private float _obstacleHeight = 1.2f;
 
+        [Header("Lane groups")]
+        [SerializeField]
+        [Tooltip("Along the lane dense groups alternate with glades, the glades hold lone obstacles. Lengths are min/max in metres.")]
+        private Vector2 _clusterLength = new(2.5f, 5f);
+
+        [SerializeField]
+        private Vector2 _gladeLength = new(3.5f, 6f);
+
+        [SerializeField]
+        [Min(0f)]
+        private float _gladeHalfWidth = 2.6f;
+
+        [SerializeField]
+        [Min(0.5f)]
+        private float _loneSpacing = 2.5f;
+
+        [SerializeField]
+        [Min(0f)]
+        private float _loneOffset = 0.35f;
+
+        public Vector2 ClusterLength => _clusterLength;
+
         public float DoorClearRadius => _doorClearRadius;
 
         public Vector2 DoorPoint => _doorPoint;
@@ -80,6 +102,14 @@ namespace BallGame.Configs
                 return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
             }
         }
+
+        public float GladeHalfWidth => _gladeHalfWidth;
+
+        public Vector2 GladeLength => _gladeLength;
+
+        public float LoneOffset => _loneOffset;
+
+        public float LoneSpacing => _loneSpacing;
 
         public float MonumentClearRadius => _monumentClearRadius;
 

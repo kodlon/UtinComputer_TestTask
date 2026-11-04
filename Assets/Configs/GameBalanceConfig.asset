@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GameBalanceConfig
   m_EditorClassIdentifier: BallGame.Runtime::BallGame.Configs.GameBalanceConfig
   _criticalRadius: 0.25
-  _minStartRadius: 0.5
+  _minStartRadius: 0.8
   _maxStartRadius: 1.4
   _sizeReserve: 0.2
   _shotRadiusByHoldTime:
@@ -59,7 +59,8 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   _minShotRadius: 0.35
-  _infectionRadiusFactor: 8
+  _infectionRadiusFactor: 28
+  _infectionRadiusPower: 3.3
   _projectileSpeed: 14
   _infectionWaveSpeed: 6
   _explodeDelay: 0.35
@@ -69,6 +70,6 @@ MonoBehaviour:
   _moveSafetyGap: 1.5
   _ballColliderScale: 0.95
   _doorOpenDistance: 5
-  _solverShotCandidates: 6
+  _solverShotCandidates: 8
   _solverMaxShotRadius: 0.8
   _maxRegenerateAttempts: 10

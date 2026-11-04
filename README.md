@@ -10,14 +10,16 @@ Unity Developer test task. The player ball sits at the bottom-left of the field 
 ## How to play
 
 - **Hold:** a shot grows out of the ball and the ball shrinks; the longer the hold, the bigger the shot. A hold too short for a useful shot gives the volume back.
-- **Release:** the shot flies into the obstacle that stops the ball and infects every obstacle within its infection radius. The radius grows with the shot, so dense groups pay off and a lone obstacle only needs a small shot.
+- **Preview:** while you hold, the obstacles the shot would infect light up.
+- **Release:** the shot flies into the obstacle that stops the ball and infects every obstacle within its infection radius.
+- **Choosing the size:** along the lane dense groups alternate with glades that hold lone obstacles. The infection radius grows a bit faster than the shot volume, so one shot that covers a whole group beats several small ones, a lone obstacle needs only the smallest shot, and a too big shot wastes its reach on the empty glades.
 - **Movement:** the ball hops forward along the cleared lane, which narrows together with the ball.
 - **Door:** it opens when the ball is within 5 m.
 - **Lose:** holding until the ball shrinks to the critical size (*Overcharged*), or the path is still blocked when the ball can't afford even the smallest shot (*Out of shots*).
 
 ## Levels
 
-- **Level 1** is a short one-screen level, **level 2** is full-size, later levels reuse the last config with a new seed.
+- **Level 1** is a short one-screen level with a forgiving ball size, **level 2** is full-size, later levels reuse the last config with a new seed.
 - Progress is saved in `PlayerPrefs`; reset it from the `GameManager` context menu → **Reset Level Progress**.
 
 ## Architecture
@@ -43,7 +45,7 @@ The start size is computed for every generated level. `LevelSolver` plays the le
 
 ## Tuning
 
-`Assets/Configs`: `GameBalanceConfig` (sizes, shot, movement, solver) and `LevelConfig` (seed, field, start and door points, obstacle density).
+`Assets/Configs`: `GameBalanceConfig` (sizes, shot, infection radius, movement, solver) and `LevelConfig` (seed, field, start and door points, obstacle density, group and glade lengths).
 
 ## Credits
 

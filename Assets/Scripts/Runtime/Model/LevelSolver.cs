@@ -107,19 +107,11 @@ namespace BallGame.Model
                 var shotVolume = VolumeMath.VolumeFromRadius(shotRadius);
                 var radiusAfterShot = VolumeMath.RadiusFromVolume(volume - shotVolume);
 
-                _trial.CopyStateFrom(_simulation);
-
-                if (!_rules.TryResolveShot(_trial, position, radiusAfterShot, shotRadius, _infected, out _))
+                if (!_rules.TryPredictShot(_simulation, _trial, position, radiusAfterShot, shotRadius, _infected, out var progress))
                 {
                     continue;
                 }
 
-                foreach (var index in _infected)
-                {
-                    _trial.Kill(index);
-                }
-
-                var progress = _rules.FreeDistance(_trial, position, radiusAfterShot);
                 var progressScore = progress / shotVolume;
                 var clearScore = _infected.Count / shotVolume;
 

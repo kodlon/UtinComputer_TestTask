@@ -30,6 +30,8 @@ namespace BallGame.Player
 
         public bool IsOvercharged => _player.Radius <= _config.CriticalRadius;
 
+        public bool IsShotReady => ShotRadius >= _config.MinShotRadius;
+
         public float ShotRadius { get; private set; }
 
         public void Begin(LevelModel level)
@@ -64,7 +66,7 @@ namespace BallGame.Player
         {
             shotRadius = ShotRadius;
 
-            if (shotRadius < _config.MinShotRadius)
+            if (!IsShotReady)
             {
                 Refund();
                 return false;

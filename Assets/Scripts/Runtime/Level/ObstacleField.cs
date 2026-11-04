@@ -28,6 +28,10 @@ namespace BallGame.Level
 
         private readonly List<ObstacleView> _views = new();
 
+        private bool[] _isTargeted;
+
+        private bool[] _nextTargeted;
+
         private int _pendingExplosions;
 
         public event Action InfectionWaveCompleted;
@@ -49,6 +53,14 @@ namespace BallGame.Level
                 view.Setup(obstacle.Position, obstacle.Radius, height, tilt, material, OnObstacleExploded);
                 _views.Add(view);
             }
+
+            _isTargeted = new bool[_views.Count];
+            _nextTargeted = new bool[_views.Count];
+        }
+
+        public void ClearTargets()
+        {
+            ShowTargets(Array.Empty<int>());
         }
 
         public void PlayInfection(IReadOnlyList<int> indices, Vector2 impactPoint, float waveSpeed, float explodeDelay)
@@ -60,6 +72,25 @@ namespace BallGame.Level
                 var view = _views[index];
                 var distance = Vector2.Distance(view.transform.position.ToPlanar(), impactPoint);
                 view.Infect(distance / waveSpeed, explodeDelay);
+            }
+        }
+
+        public void ShowTargets(IReadOnlyList<int> indices)
+        {
+            Array.Clear(_nextTargeted, 0, _nextTargeted.Length);
+
+            foreach (var index in indices)
+            {
+                _nextTargeted[index] = true;
+            }
+
+            for (var i = 0; i < _views.Count; i++)
+            {
+                if (_isTargeted[i] != _nextTargeted[i])
+                {
+                    _isTargeted[i] = _nextTargeted[i];
+                    _views[i].SetTargeted(_isTargeted[i]);
+                }
             }
         }
 

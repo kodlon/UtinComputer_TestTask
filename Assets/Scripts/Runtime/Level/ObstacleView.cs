@@ -19,7 +19,12 @@ namespace BallGame.Level
         [SerializeField]
         private MeshRenderer _renderer;
 
+        [SerializeField]
+        private Material _targetedMaterial;
+
         private Vector3 _baseScale;
+
+        private Material _idleMaterial;
 
         private Action<ObstacleView> _exploded;
 
@@ -39,11 +44,17 @@ namespace BallGame.Level
         {
             _exploded = exploded;
             _baseScale = new Vector3(radius * 2f, height / CapsuleMeshHeight, radius * 2f);
+            _idleMaterial = material;
             _renderer.sharedMaterial = material;
 
             var center = position.ToXZ() + tilt * (Vector3.up * (height * 0.5f));
             transform.SetLocalPositionAndRotation(center, tilt);
             transform.localScale = _baseScale;
+        }
+
+        public void SetTargeted(bool isTargeted)
+        {
+            _renderer.sharedMaterial = isTargeted ? _targetedMaterial : _idleMaterial;
         }
 
         private void OnExploded()

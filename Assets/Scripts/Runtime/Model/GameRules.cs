@@ -28,15 +28,43 @@ namespace BallGame.Model
             return Mathf.Max(0f, distance - _config.MoveSafetyGap);
         }
 
-        // Quadratic: up to about the lane width a bigger shot clears more per spent volume.
+        // Grows a bit faster than the shot volume (power above 3): one shot over a whole dense group beats several small
+        // ones, while a too big shot wastes its reach on the empty glades and a lone obstacle needs only the smallest shot.
         public float InfectionRadius(float shotRadius)
         {
-            return _config.InfectionRadiusFactor * shotRadius * shotRadius;
+            return _config.InfectionRadiusFactor * Mathf.Pow(shotRadius, _config.InfectionRadiusPower);
         }
 
         public Vector2 ShotOrigin(LevelModel level, Vector2 playerPosition, float playerRadius, float shotRadius)
         {
             return playerPosition + level.LaneDirection * (playerRadius + shotRadius);
+        }
+
+        // Plays the shot on the trial copy: what it infects and how far the ball then moves.
+        public bool TryPredictShot(
+            LevelModel level,
+            LevelModel trial,
+            Vector2 playerPosition,
+            float playerRadius,
+            float shotRadius,
+            List<int> infected,
+            out float advance)
+        {
+            trial.CopyStateFrom(level);
+
+            if (!TryResolveShot(trial, playerPosition, playerRadius, shotRadius, infected, out _))
+            {
+                advance = 0f;
+                return false;
+            }
+
+            foreach (var index in infected)
+            {
+                trial.Kill(index);
+            }
+
+            advance = FreeDistance(trial, playerPosition, playerRadius);
+            return true;
         }
 
         // Doesn't kill: the game does it when the projectile arrives, the solver on a trial copy.
@@ -60,7 +88,7 @@ namespace BallGame.Model
             var fromHit = ShotOrigin(level, playerPosition, playerRadius, shotRadius) - hit.Position;
             impactPoint = hit.Position + Vector2.ClampMagnitude(fromHit, hit.Radius + shotRadius);
 
-            var reach = shotRadius + InfectionRadius(shotRadius);
+            var reach = InfectionRadius(shotRadius);
 
             for (var i = 0; i < level.ObstacleCount; i++)
             {

@@ -12,7 +12,7 @@ namespace BallGame.Configs
 
         [SerializeField]
         [Min(0.01f)]
-        private float _minStartRadius = 0.5f;
+        private float _minStartRadius = 0.8f;
 
         [SerializeField]
         [Min(0.01f)]
@@ -37,7 +37,11 @@ namespace BallGame.Configs
 
         [SerializeField]
         [Min(0.1f)]
-        private float _infectionRadiusFactor = 8f;
+        private float _infectionRadiusFactor = 28f;
+
+        [SerializeField]
+        [Range(1f, 5f)]
+        private float _infectionRadiusPower = 3.3f;
 
         [SerializeField]
         [Min(0.1f)]
@@ -80,7 +84,7 @@ namespace BallGame.Configs
         [Header("Solver")]
         [SerializeField]
         [Min(2)]
-        private int _solverShotCandidates = 6;
+        private int _solverShotCandidates = 8;
 
         [SerializeField]
         [Min(0.01f)]
@@ -105,6 +109,8 @@ namespace BallGame.Configs
         public float HopLength => _hopLength;
 
         public float InfectionRadiusFactor => _infectionRadiusFactor;
+
+        public float InfectionRadiusPower => _infectionRadiusPower;
 
         public float InfectionWaveSpeed => _infectionWaveSpeed;
 

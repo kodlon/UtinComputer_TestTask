@@ -75,6 +75,8 @@ namespace BallGame.Core
 
         private readonly List<int> _infected = new();
 
+        private readonly List<int> _previewTargets = new();
+
         private Vector2 _impactPoint;
 
         private ShotCharger _charger;
@@ -165,7 +167,10 @@ namespace BallGame.Core
             if (_charger.IsOvercharged)
             {
                 Lose(LoseReason.Overcharged);
+                return;
             }
+
+            UpdateShotPreview();
         }
 
         private void LateUpdate()
@@ -195,6 +200,8 @@ namespace BallGame.Core
                 return;
             }
 
+            _obstacleField.ClearTargets();
+
             if (!_charger.TryRelease(out var shotRadius))
             {
                 EnterReady();
@@ -216,6 +223,7 @@ namespace BallGame.Core
                 return;
             }
 
+            _obstacleField.ClearTargets();
             _charger.Refund();
             EnterReady();
         }
@@ -306,6 +314,7 @@ namespace BallGame.Core
         {
             // State first: disabling input fires PressCancelled, which must not see the Charging state.
             SetState(GameState.Lose);
+            _obstacleField.ClearTargets();
             _charger.Cancel();
             _inputReader.SetEnabled(false);
             _hud.HideHint();
@@ -333,6 +342,19 @@ namespace BallGame.Core
         private void ResetLevelProgress()
         {
             LevelProgress.Reset();
+        }
+
+        // Lights up exactly the obstacles that releasing now would infect.
+        private void UpdateShotPreview()
+        {
+            if (!_charger.IsShotReady
+                || !_rules.TryResolveShot(_level, _player.Position, _player.Radius, _charger.ShotRadius, _previewTargets, out _))
+            {
+                _obstacleField.ClearTargets();
+                return;
+            }
+
+            _obstacleField.ShowTargets(_previewTargets);
         }
 
         private void SetState(GameState state)
