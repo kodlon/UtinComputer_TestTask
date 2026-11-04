@@ -47,6 +47,15 @@ The start size is computed for every generated level. `LevelSolver` plays the le
 
 `Assets/Configs`: `GameBalanceConfig` (sizes, shot, infection radius, movement, solver) and `LevelConfig` (seed, field, start and door points, obstacle density, group and glade lengths).
 
+## Tests
+
+`Assets/Tests/EditMode` (Window → General → Test Runner → EditMode), four tests on the plain C# model:
+
+- the shipped levels reach the door with at least 20% of the start size left;
+- a shot infects only the alive obstacles within its reach;
+- the smallest shot clears a lone obstacle, while one shot over a dense group costs less than a series of small ones;
+- the ball stops before the first obstacle on its lane and reaches the door when the lane is clear.
+
 ## Credits
 
 Third-party assets and their licenses are listed in [CREDITS.md](CREDITS.md).

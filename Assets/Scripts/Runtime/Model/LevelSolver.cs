@@ -28,6 +28,8 @@ namespace BallGame.Model
 
         private LevelModel _simulation;
 
+        private LevelModel _source;
+
         private LevelModel _trial;
 
         public LevelSolver(GameBalanceConfig config, GameRules rules)
@@ -36,12 +38,39 @@ namespace BallGame.Model
             _rules = rules;
         }
 
+        // Plays the level the way the solver does: greedy shots from the given start volume.
+        public bool TryPlay(LevelModel level, float startVolume, out float finalVolume)
+        {
+            PrepareBuffers(level);
+            _simulation.CopyStateFrom(level);
+            finalVolume = startVolume;
+
+            var volume = startVolume;
+            var position = level.StartPoint;
+
+            for (var step = 0; step < MaxSteps; step++)
+            {
+                position += level.LaneDirection * _rules.FreeDistance(_simulation, position, VolumeMath.RadiusFromVolume(volume));
+
+                if (Vector2.Distance(position, level.DoorPoint) <= ReachEpsilon)
+                {
+                    finalVolume = volume;
+
+                    return true;
+                }
+
+                if (!TryPickShot(position, volume, out var shotVolume))
+                    return false;
+
+                _simulation.CopyStateFrom(_best);
+                volume -= shotVolume;
+            }
+
+            return false;
+        }
+
         public bool TrySolve(LevelModel level, out float startVolume)
         {
-            _simulation = level.Clone();
-            _trial = level.Clone();
-            _best = level.Clone();
-
             var failed = 0f;
 
             for (var radius = _config.MinStartRadius; radius <= _config.MaxStartRadius; radius += StartRadiusStep)
@@ -65,6 +94,17 @@ namespace BallGame.Model
 
         private bool HasReserve(LevelModel level, float startVolume) =>
             TryPlay(level, startVolume, out var finalVolume) && finalVolume >= startVolume * _config.SizeReserve;
+
+        private void PrepareBuffers(LevelModel level)
+        {
+            if (_source == level)
+                return;
+
+            _source = level;
+            _simulation = level.Clone();
+            _trial = level.Clone();
+            _best = level.Clone();
+        }
 
         private float Refine(LevelModel level, float failed, float passed)
         {
@@ -123,34 +163,6 @@ namespace BallGame.Model
             }
 
             return bestShotVolume > 0f;
-        }
-
-        private bool TryPlay(LevelModel level, float volume, out float finalVolume)
-        {
-            _simulation.CopyStateFrom(level);
-            finalVolume = volume;
-
-            var position = level.StartPoint;
-
-            for (var step = 0; step < MaxSteps; step++)
-            {
-                position += level.LaneDirection * _rules.FreeDistance(_simulation, position, VolumeMath.RadiusFromVolume(volume));
-
-                if (Vector2.Distance(position, level.DoorPoint) <= ReachEpsilon)
-                {
-                    finalVolume = volume;
-
-                    return true;
-                }
-
-                if (!TryPickShot(position, volume, out var shotVolume))
-                    return false;
-
-                _simulation.CopyStateFrom(_best);
-                volume -= shotVolume;
-            }
-
-            return false;
         }
     }
 }
