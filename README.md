@@ -26,7 +26,7 @@ Unity Developer test task. The player ball sits at the bottom-left of the field 
 
 ```
 Assets/Scripts/Runtime
-  Model/      plain C#: LevelModel, GameRules, LevelGenerator, LevelSolver
+  Model/      plain C#: LevelModel, GameRules, LevelGenerator, LevelSolver, LevelFactory
   Core/       GameManager: the state machine that wires everything together
   Player/     PlayerBall, ShotCharger, PlayerMover
   Level/      ObstacleField, ObstacleView, LanePath, Door, Monument

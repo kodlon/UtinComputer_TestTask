@@ -21,8 +21,6 @@ namespace BallGame.Core
 
         private const float ReachEpsilon = 0.001f;
 
-        private const int SeedStepPerExtraLevel = 100;
-
         private const int TargetFrameRate = 60;
 
         private const float FullShakeInfectedCount = 12f;
@@ -83,11 +81,7 @@ namespace BallGame.Core
 
         private LevelModel _level;
 
-        private LevelConfig _levelConfig;
-
         private int _levelIndex;
-
-        private int _levelSeed;
 
         private GameRules _rules;
 
@@ -134,21 +128,25 @@ namespace BallGame.Core
         private void Start()
         {
             _levelIndex = LevelProgress.CurrentIndex;
-            _levelConfig = _levels[Mathf.Min(_levelIndex, _levels.Length - 1)];
 
-            if (!TryCreateLevel(out _level, out _startVolume, out _levelSeed))
+            if (!new LevelFactory(_balanceConfig, _levels, _rules).TryCreate(_levelIndex, out var setup))
             {
+                Debug.LogError($"[Solver] no solvable level after {_balanceConfig.MaxRegenerateAttempts} attempts. Tune LevelConfig.");
                 enabled = false;
                 return;
             }
 
-            _obstacleField.Build(_level, _levelConfig, _levelSeed);
+            _level = setup.Level;
+            _startVolume = setup.StartVolume;
+            Log($"[Solver] level {LevelNumber}, seed {setup.Seed}: start radius {VolumeMath.RadiusFromVolume(_startVolume):0.00}");
+
+            _obstacleField.Build(_level, setup.Config, setup.Seed);
             _lanePath.Setup(_level.DoorPoint);
             _projectile.Hide();
             _player.Initialize(_level.StartPoint, _startVolume);
             _door.Place(_level.DoorPoint, -_level.LaneDirection, _player.transform, _balanceConfig.DoorOpenDistance);
-            _monument.Place(_levelConfig.MonumentPoint, -_level.LaneDirection);
-            _cameraFollow.SetTarget(_player.transform, _levelConfig.FieldBounds);
+            _monument.Place(setup.Config.MonumentPoint, -_level.LaneDirection);
+            _cameraFollow.SetTarget(_player.transform, setup.Config.FieldBounds);
             _hud.Initialize(LevelNumber, _player.Radius, _balanceConfig.CriticalRadius);
             _result.Hide();
 
@@ -362,33 +360,6 @@ namespace BallGame.Core
             Log($"[Game] {_state} -> {state}");
             _state = state;
             StateChanged?.Invoke(state);
-        }
-
-        private bool TryCreateLevel(out LevelModel level, out float startVolume, out int seed)
-        {
-            var solver = new LevelSolver(_balanceConfig, _rules);
-            var extraLevels = Mathf.Max(0, _levelIndex - (_levels.Length - 1));
-            var baseSeed = _levelConfig.Seed + extraLevels * SeedStepPerExtraLevel;
-
-            for (var attempt = 0; attempt < _balanceConfig.MaxRegenerateAttempts; attempt++)
-            {
-                seed = baseSeed + attempt;
-                level = LevelGenerator.Generate(_levelConfig, seed);
-
-                if (solver.TrySolve(level, out startVolume))
-                {
-                    Log($"[Solver] level {LevelNumber}, seed {seed}: start radius {VolumeMath.RadiusFromVolume(startVolume):0.00}");
-                    return true;
-                }
-
-                Debug.LogWarning($"[Solver] seed {seed} is unsolvable within the size limits, regenerating.");
-            }
-
-            Debug.LogError($"[Solver] no solvable level after {_balanceConfig.MaxRegenerateAttempts} attempts. Tune LevelConfig.");
-            level = null;
-            startVolume = 0f;
-            seed = 0;
-            return false;
         }
 
         [Conditional("UNITY_EDITOR")]
