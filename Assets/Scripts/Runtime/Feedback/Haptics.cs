@@ -1,6 +1,3 @@
-using System;
-using UnityEngine;
-
 namespace BallGame.Feedback
 {
     // Referencing Handheld.Vibrate also makes Unity add the VIBRATE permission to the manifest.
@@ -67,9 +64,7 @@ namespace BallGame.Feedback
             }
         }
 #else
-        private static void Vibrate(long milliseconds, int amplitude)
-        {
-        }
+        private static void Vibrate(long milliseconds, int amplitude) { }
 #endif
     }
 }

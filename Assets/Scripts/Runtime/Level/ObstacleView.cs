@@ -24,9 +24,9 @@ namespace BallGame.Level
 
         private Vector3 _baseScale;
 
-        private Material _idleMaterial;
-
         private Action<ObstacleView> _exploded;
+
+        private Material _idleMaterial;
 
         public void Infect(float delay, float explodeDelay)
         {
@@ -40,7 +40,18 @@ namespace BallGame.Level
                 .OnComplete(OnExploded);
         }
 
-        public void Setup(Vector2 position, float radius, float height, Quaternion tilt, Material material, Action<ObstacleView> exploded)
+        public void SetTargeted(bool isTargeted)
+        {
+            _renderer.sharedMaterial = isTargeted ? _targetedMaterial : _idleMaterial;
+        }
+
+        public void Setup(
+            Vector2 position,
+            float radius,
+            float height,
+            Quaternion tilt,
+            Material material,
+            Action<ObstacleView> exploded)
         {
             _exploded = exploded;
             _baseScale = new Vector3(radius * 2f, height / CapsuleMeshHeight, radius * 2f);
@@ -50,11 +61,6 @@ namespace BallGame.Level
             var center = position.ToXZ() + tilt * (Vector3.up * (height * 0.5f));
             transform.SetLocalPositionAndRotation(center, tilt);
             transform.localScale = _baseScale;
-        }
-
-        public void SetTargeted(bool isTargeted)
-        {
-            _renderer.sharedMaterial = isTargeted ? _targetedMaterial : _idleMaterial;
         }
 
         private void OnExploded()

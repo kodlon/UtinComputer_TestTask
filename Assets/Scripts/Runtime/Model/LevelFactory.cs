@@ -35,6 +35,7 @@ namespace BallGame.Model
                 if (_solver.TrySolve(level, out var startVolume))
                 {
                     setup = new LevelSetup(config, level, seed, startVolume);
+
                     return true;
                 }
 
@@ -42,6 +43,7 @@ namespace BallGame.Model
             }
 
             setup = null;
+
             return false;
         }
     }

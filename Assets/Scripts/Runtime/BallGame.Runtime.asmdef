@@ -1,18 +1,18 @@
 {
-    "name": "BallGame.Runtime",
-    "rootNamespace": "BallGame",
-    "references": [
-        "Unity.InputSystem",
-        "Unity.TextMeshPro",
-        "UnityEngine.UI"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "BallGame.Runtime",
+  "rootNamespace": "BallGame",
+  "references": [
+    "Unity.InputSystem",
+    "Unity.TextMeshPro",
+    "UnityEngine.UI"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }

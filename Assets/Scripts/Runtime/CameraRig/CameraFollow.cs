@@ -36,9 +36,7 @@ namespace BallGame.CameraRig
         private void LateUpdate()
         {
             if (_target == null)
-            {
                 return;
-            }
 
             transform.position = Vector3.SmoothDamp(transform.position, DesiredPosition(), ref _velocity, _smoothTime);
         }
@@ -49,15 +47,6 @@ namespace BallGame.CameraRig
             anchor.y = 0f;
 
             return anchor;
-        }
-
-        private Vector3 DesiredPosition()
-        {
-            var anchor = Anchor().ToPlanar();
-            anchor.x = Mathf.Clamp(anchor.x, _anchorBounds.xMin, _anchorBounds.xMax);
-            anchor.y = Mathf.Clamp(anchor.y, _anchorBounds.yMin, _anchorBounds.yMax);
-
-            return anchor.ToXZ() + _offset;
         }
 
         private Rect ComputeAnchorBounds(Vector2 anchor, Rect field)
@@ -71,9 +60,7 @@ namespace BallGame.CameraRig
                 var ray = _camera.ViewportPointToRay(new Vector3(corner % 2, corner / 2, 0f));
 
                 if (!ground.Raycast(ray, out var distance))
-                {
                     continue;
-                }
 
                 var offset = ray.GetPoint(distance).ToPlanar() - anchor;
                 minOffset = Vector2.Min(minOffset, offset);
@@ -84,16 +71,21 @@ namespace BallGame.CameraRig
             var max = field.max - maxOffset;
 
             if (min.x > max.x)
-            {
                 min.x = max.x = (min.x + max.x) * 0.5f;
-            }
 
             if (min.y > max.y)
-            {
                 min.y = max.y = (min.y + max.y) * 0.5f;
-            }
 
             return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+        }
+
+        private Vector3 DesiredPosition()
+        {
+            var anchor = Anchor().ToPlanar();
+            anchor.x = Mathf.Clamp(anchor.x, _anchorBounds.xMin, _anchorBounds.xMax);
+            anchor.y = Mathf.Clamp(anchor.y, _anchorBounds.yMin, _anchorBounds.yMax);
+
+            return anchor.ToXZ() + _offset;
         }
     }
 }

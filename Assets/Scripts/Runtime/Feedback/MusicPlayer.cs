@@ -12,6 +12,7 @@ namespace BallGame.Feedback
             if (_instance != null)
             {
                 Destroy(gameObject);
+
                 return;
             }
 
@@ -23,9 +24,7 @@ namespace BallGame.Feedback
         private void OnDestroy()
         {
             if (_instance == this)
-            {
                 _instance = null;
-            }
         }
     }
 }

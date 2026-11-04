@@ -99,6 +99,7 @@ namespace BallGame.Configs
             {
                 var min = Vector2.Min(_startPoint, _doorPoint) - new Vector2(_sidePadding, _backPadding);
                 var max = Vector2.Max(_startPoint, _doorPoint) + new Vector2(_sidePadding, _frontPadding);
+
                 return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
             }
         }

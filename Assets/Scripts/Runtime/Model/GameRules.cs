@@ -8,37 +8,26 @@ namespace BallGame.Model
     {
         private readonly GameBalanceConfig _config;
 
-        public GameRules(GameBalanceConfig config)
-        {
-            _config = config;
-        }
+        public GameRules(GameBalanceConfig config) => _config = config;
 
-        public bool CanAffordShot(float playerVolume)
-        {
-            return playerVolume - VolumeMath.VolumeFromRadius(_config.CriticalRadius) >= VolumeMath.VolumeFromRadius(_config.MinShotRadius);
-        }
+        public bool CanAffordShot(float playerVolume) =>
+            playerVolume - VolumeMath.VolumeFromRadius(_config.CriticalRadius) >= VolumeMath.VolumeFromRadius(_config.MinShotRadius);
 
         public float FreeDistance(LevelModel level, Vector2 position, float playerRadius)
         {
-            if (!TryFindBlocker(level, position, playerRadius, out _, out var distance))
-            {
+            if (!TryFindBlocker(level, position, playerRadius, out _,
+                    out var distance))
                 return Vector2.Distance(position, level.DoorPoint);
-            }
 
             return Mathf.Max(0f, distance - _config.MoveSafetyGap);
         }
 
         // Grows a bit faster than the shot volume (power above 3): one shot over a whole dense group beats several small
         // ones, while a too big shot wastes its reach on the empty glades and a lone obstacle needs only the smallest shot.
-        public float InfectionRadius(float shotRadius)
-        {
-            return _config.InfectionRadiusFactor * Mathf.Pow(shotRadius, _config.InfectionRadiusPower);
-        }
+        public float InfectionRadius(float shotRadius) => _config.InfectionRadiusFactor * Mathf.Pow(shotRadius, _config.InfectionRadiusPower);
 
-        public Vector2 ShotOrigin(LevelModel level, Vector2 playerPosition, float playerRadius, float shotRadius)
-        {
-            return playerPosition + level.LaneDirection * (playerRadius + shotRadius);
-        }
+        public Vector2 ShotOrigin(LevelModel level, Vector2 playerPosition, float playerRadius, float shotRadius) =>
+            playerPosition + level.LaneDirection * (playerRadius + shotRadius);
 
         // Plays the shot on the trial copy: what it infects and how far the ball then moves.
         public bool TryPredictShot(
@@ -52,18 +41,19 @@ namespace BallGame.Model
         {
             trial.CopyStateFrom(level);
 
-            if (!TryResolveShot(trial, playerPosition, playerRadius, shotRadius, infected, out _))
+            if (!TryResolveShot(trial, playerPosition, playerRadius, shotRadius,
+                    infected, out _))
             {
                 advance = 0f;
+
                 return false;
             }
 
             foreach (var index in infected)
-            {
                 trial.Kill(index);
-            }
 
             advance = FreeDistance(trial, playerPosition, playerRadius);
+
             return true;
         }
 
@@ -78,9 +68,11 @@ namespace BallGame.Model
         {
             infected.Clear();
 
-            if (!TryFindBlocker(level, playerPosition, playerRadius, out var hitIndex, out _))
+            if (!TryFindBlocker(level, playerPosition, playerRadius, out var hitIndex,
+                    out _))
             {
                 impactPoint = level.DoorPoint;
+
                 return false;
             }
 
@@ -95,15 +87,18 @@ namespace BallGame.Model
                 var obstacle = level.GetObstacle(i);
 
                 if (level.IsAlive(i) && Vector2.Distance(impactPoint, obstacle.Position) - obstacle.Radius <= reach)
-                {
                     infected.Add(i);
-                }
             }
 
             return true;
         }
 
-        private bool TryFindBlocker(LevelModel level, Vector2 position, float playerRadius, out int obstacleIndex, out float distance)
+        private bool TryFindBlocker(
+            LevelModel level,
+            Vector2 position,
+            float playerRadius,
+            out int obstacleIndex,
+            out float distance)
         {
             var direction = level.LaneDirection;
             var radius = playerRadius * _config.BallColliderScale;
@@ -114,9 +109,7 @@ namespace BallGame.Model
             for (var i = 0; i < level.ObstacleCount; i++)
             {
                 if (!level.IsAlive(i))
-                {
                     continue;
-                }
 
                 var obstacle = level.GetObstacle(i);
                 var toCenter = obstacle.Position - position;
@@ -125,9 +118,7 @@ namespace BallGame.Model
                 var overlapSqr = contact * contact - (toCenter.sqrMagnitude - along * along);
 
                 if (overlapSqr <= 0f)
-                {
                     continue;
-                }
 
                 var overlap = Mathf.Sqrt(overlapSqr);
                 var hitDistance = Mathf.Max(0f, along - overlap);

@@ -7,14 +7,8 @@ namespace BallGame.Model
     {
         private const float OneThird = 1f / 3f;
 
-        public static float RadiusFromVolume(float volume)
-        {
-            return Mathf.Pow(Mathf.Max(volume, 0f), OneThird);
-        }
+        public static float RadiusFromVolume(float volume) => Mathf.Pow(Mathf.Max(volume, 0f), OneThird);
 
-        public static float VolumeFromRadius(float radius)
-        {
-            return radius * radius * radius;
-        }
+        public static float VolumeFromRadius(float radius) => radius * radius * radius;
     }
 }

@@ -9,6 +9,14 @@ namespace BallGame.Model
 
         private readonly Obstacle[] _obstacles;
 
+        public Vector2 DoorPoint { get; }
+
+        public Vector2 LaneDirection { get; }
+
+        public int ObstacleCount => _obstacles.Length;
+
+        public Vector2 StartPoint { get; }
+
         public LevelModel(Vector2 startPoint, Vector2 doorPoint, Obstacle[] obstacles)
         {
             StartPoint = startPoint;
@@ -28,33 +36,16 @@ namespace BallGame.Model
             _alive = (bool[])source._alive.Clone();
         }
 
-        public Vector2 DoorPoint { get; }
-
-        public Vector2 LaneDirection { get; }
-
-        public int ObstacleCount => _obstacles.Length;
-
-        public Vector2 StartPoint { get; }
-
-        public LevelModel Clone()
-        {
-            return new LevelModel(this);
-        }
+        public LevelModel Clone() => new(this);
 
         public void CopyStateFrom(LevelModel source)
         {
             Array.Copy(source._alive, _alive, _alive.Length);
         }
 
-        public Obstacle GetObstacle(int index)
-        {
-            return _obstacles[index];
-        }
+        public Obstacle GetObstacle(int index) => _obstacles[index];
 
-        public bool IsAlive(int index)
-        {
-            return _alive[index];
-        }
+        public bool IsAlive(int index) => _alive[index];
 
         public void Kill(int index)
         {

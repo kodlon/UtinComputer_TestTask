@@ -4,6 +4,7 @@ using BallGame.Common;
 using BallGame.Configs;
 using BallGame.Model;
 using UnityEngine;
+using Random = System.Random;
 
 namespace BallGame.Level
 {
@@ -40,7 +41,7 @@ namespace BallGame.Level
 
         public void Build(LevelModel level, LevelConfig config, int seed)
         {
-            var random = new System.Random(seed);
+            var random = new Random(seed);
 
             for (var i = 0; i < level.ObstacleCount; i++)
             {
@@ -50,7 +51,10 @@ namespace BallGame.Level
                 var material = _idleMaterials[random.Next(_idleMaterials.Length)];
 
                 var view = Instantiate(_obstaclePrefab, transform);
-                view.Setup(obstacle.Position, obstacle.Radius, height, tilt, material, OnObstacleExploded);
+
+                view.Setup(obstacle.Position, obstacle.Radius, height, tilt,
+                    material, OnObstacleExploded);
+
                 _views.Add(view);
             }
 
@@ -80,9 +84,7 @@ namespace BallGame.Level
             Array.Clear(_nextTargeted, 0, _nextTargeted.Length);
 
             foreach (var index in indices)
-            {
                 _nextTargeted[index] = true;
-            }
 
             for (var i = 0; i < _views.Count; i++)
             {
@@ -94,10 +96,7 @@ namespace BallGame.Level
             }
         }
 
-        private static float NextSigned(System.Random random)
-        {
-            return (float)(random.NextDouble() * 2.0 - 1.0);
-        }
+        private static float NextSigned(Random random) => (float)(random.NextDouble() * 2.0 - 1.0);
 
         private void OnObstacleExploded(ObstacleView view)
         {
@@ -108,9 +107,7 @@ namespace BallGame.Level
             _pendingExplosions--;
 
             if (_pendingExplosions == 0)
-            {
                 InfectionWaveCompleted?.Invoke();
-            }
         }
     }
 }

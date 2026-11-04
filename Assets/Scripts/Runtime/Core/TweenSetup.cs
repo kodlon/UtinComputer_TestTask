@@ -12,7 +12,7 @@ namespace BallGame.Core
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
-            DOTween.Init(recycleAllByDefault: false, useSafeMode: true, LogBehaviour.ErrorsOnly)
+            DOTween.Init(false, true, LogBehaviour.ErrorsOnly)
                 .SetCapacity(TweenCapacity, SequenceCapacity);
         }
     }

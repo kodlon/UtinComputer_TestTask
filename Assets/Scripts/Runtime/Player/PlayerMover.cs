@@ -12,12 +12,12 @@ namespace BallGame.Player
 
         private const float StretchShare = 0.4f;
 
+        [SerializeField]
+        private PlayerBall _player;
+
         private static readonly Vector3 LandingSquash = new(1.2f, 0.8f, 1.2f);
 
         private static readonly Vector3 TakeOffStretch = new(0.88f, 1.15f, 0.88f);
-
-        [SerializeField]
-        private PlayerBall _player;
 
         private GameBalanceConfig _config;
 
@@ -44,7 +44,10 @@ namespace BallGame.Player
 
                 sequence.Append(_player.transform.DOJump(landing, _config.HopHeight, 1, duration).SetEase(Ease.Linear));
                 sequence.Join(visual.DOScale(TakeOffStretch, duration * StretchShare).SetEase(Ease.OutQuad));
-                sequence.Insert(sequence.Duration() - duration * (1f - StretchShare), visual.DOScale(Vector3.one, duration * (1f - StretchShare)).SetEase(Ease.InQuad));
+
+                sequence.Insert(sequence.Duration() - duration * (1f - StretchShare),
+                    visual.DOScale(Vector3.one, duration * (1f - StretchShare)).SetEase(Ease.InQuad));
+
                 sequence.AppendCallback(OnHopLanded);
                 sequence.Append(visual.DOScale(LandingSquash, LandingDuration * 0.4f).SetEase(Ease.OutQuad));
                 sequence.Append(visual.DOScale(Vector3.one, LandingDuration * 0.6f).SetEase(Ease.OutBack));

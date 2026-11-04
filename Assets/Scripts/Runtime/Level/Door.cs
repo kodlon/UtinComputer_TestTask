@@ -9,8 +9,6 @@ namespace BallGame.Level
     {
         private const float PunchDuration = 0.4f;
 
-        private static readonly Vector3 OpenPunch = new(0.08f, 0.12f, 0.08f);
-
         [SerializeField]
         private ParticleSystem _confetti;
 
@@ -27,6 +25,8 @@ namespace BallGame.Level
         [SerializeField]
         [Min(0.01f)]
         private float _openDuration = 0.6f;
+
+        private static readonly Vector3 OpenPunch = new(0.08f, 0.12f, 0.08f);
 
         private bool _isOpen;
 
@@ -51,9 +51,7 @@ namespace BallGame.Level
         private void Update()
         {
             if (_isOpen || _visitor == null)
-            {
                 return;
-            }
 
             var distance = Vector2.Distance(_visitor.position.ToPlanar(), transform.position.ToPlanar());
 

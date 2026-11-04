@@ -25,8 +25,7 @@ namespace BallGame.Configs
 
         [Header("Shot")]
         [SerializeField]
-        private AnimationCurve _shotRadiusByHoldTime = new(
-            new Keyframe(0f, 0f, 0.8f, 0.8f),
+        private AnimationCurve _shotRadiusByHoldTime = new(new Keyframe(0f, 0f, 0.8f, 0.8f),
             new Keyframe(0.5f, 0.35f, 0.5f, 0.5f),
             new Keyframe(1.5f, 0.8f, 0.6f, 0.6f),
             new Keyframe(2.5f, 1.5f, 0.8f, 0.8f));

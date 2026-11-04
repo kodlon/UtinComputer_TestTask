@@ -7,6 +7,8 @@ namespace BallGame.UI
 {
     public sealed class HudView : MonoBehaviour
     {
+        private const float CurtainFadeDuration = 0.3f;
+
         private const float DangerBlinkDuration = 0.25f;
 
         private const float HintPulseDuration = 0.6f;
@@ -14,6 +16,9 @@ namespace BallGame.UI
         private const float HintPulseScale = 1.06f;
 
         private const float LevelPopDuration = 0.5f;
+
+        [SerializeField]
+        private CanvasGroup _curtain;
 
         [SerializeField]
         private GameObject _hint;
@@ -62,6 +67,10 @@ namespace BallGame.UI
             _levelLabel.transform.localScale = Vector3.zero;
             _levelLabel.transform.DOScale(1f, LevelPopDuration).SetEase(Ease.OutBack).SetLink(gameObject);
             _hint.transform.DOScale(HintPulseScale, HintPulseDuration).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine).SetLink(_hint);
+
+            DOTween.To(() => _curtain.alpha, alpha => _curtain.alpha = alpha, 0f, CurtainFadeDuration)
+                .SetLink(_curtain.gameObject)
+                .OnComplete(HideCurtain);
         }
 
         public void SetRadius(float radius)
@@ -71,12 +80,21 @@ namespace BallGame.UI
             SetDanger(fill < _dangerThreshold);
         }
 
+        private void Awake()
+        {
+            _curtain.alpha = 1f;
+            _curtain.gameObject.SetActive(true);
+        }
+
+        private void HideCurtain()
+        {
+            _curtain.gameObject.SetActive(false);
+        }
+
         private void SetDanger(bool isInDanger)
         {
             if (_isInDanger == isInDanger)
-            {
                 return;
-            }
 
             _isInDanger = isInDanger;
             _dangerBlink?.Kill();

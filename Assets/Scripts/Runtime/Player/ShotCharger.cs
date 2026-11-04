@@ -20,6 +20,12 @@ namespace BallGame.Player
 
         private float _volumeBeforeShot;
 
+        public bool IsOvercharged => _player.Radius <= _config.CriticalRadius;
+
+        public bool IsShotReady => ShotRadius >= _config.MinShotRadius;
+
+        public float ShotRadius { get; private set; }
+
         public ShotCharger(GameBalanceConfig config, GameRules rules, PlayerBall player, Projectile projectile)
         {
             _config = config;
@@ -27,12 +33,6 @@ namespace BallGame.Player
             _player = player;
             _projectile = projectile;
         }
-
-        public bool IsOvercharged => _player.Radius <= _config.CriticalRadius;
-
-        public bool IsShotReady => ShotRadius >= _config.MinShotRadius;
-
-        public float ShotRadius { get; private set; }
 
         public void Begin(LevelModel level)
         {
@@ -69,10 +69,12 @@ namespace BallGame.Player
             if (!IsShotReady)
             {
                 Refund();
+
                 return false;
             }
 
             _player.SetCharging(false);
+
             return true;
         }
 

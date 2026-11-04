@@ -42,18 +42,18 @@ namespace BallGame.UI
         public void ShowLose(LoseReason reason)
         {
             var (title, subtitle) = reason switch
-            {
-                LoseReason.Overcharged => ("Overcharged!", "The ball poured itself into the shot."),
-                LoseReason.OutOfShots => ("Out of shots", "Not enough size left to clear the path."),
-                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null)
-            };
+                                    {
+                                        LoseReason.Overcharged => ("Overcharged!", "The ball poured itself into the shot."),
+                                        LoseReason.OutOfShots => ("Out of shots", "Not enough size left to clear the path."),
+                                        _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null)
+                                    };
 
-            Show(title, subtitle, isWin: false);
+            Show(title, subtitle, false);
         }
 
         public void ShowWin(int levelNumber, float sizeLeft)
         {
-            Show($"Level {levelNumber} complete!", $"Size left: {sizeLeft:P0}", isWin: true);
+            Show($"Level {levelNumber} complete!", $"Size left: {sizeLeft:P0}", true);
         }
 
         private void Awake()
@@ -81,6 +81,19 @@ namespace BallGame.UI
             RetryClicked?.Invoke();
         }
 
+        private void PlayAppear(Transform button)
+        {
+            _group.alpha = 0f;
+            _title.transform.localScale = Vector3.one * 0.6f;
+            button.localScale = Vector3.zero;
+
+            DOTween.Sequence()
+                .Append(DOTween.To(() => _group.alpha, alpha => _group.alpha = alpha, 1f, FadeDuration))
+                .Join(_title.transform.DOScale(1f, PopDuration).SetEase(Ease.OutBack))
+                .Insert(ButtonDelay, button.DOScale(1f, PopDuration).SetEase(Ease.OutBack))
+                .SetLink(gameObject);
+        }
+
         private void SetButtonsInteractable(bool isInteractable)
         {
             _nextButton.interactable = isInteractable;
@@ -96,19 +109,6 @@ namespace BallGame.UI
             SetButtonsInteractable(true);
             gameObject.SetActive(true);
             PlayAppear(isWin ? _nextButton.transform : _retryButton.transform);
-        }
-
-        private void PlayAppear(Transform button)
-        {
-            _group.alpha = 0f;
-            _title.transform.localScale = Vector3.one * 0.6f;
-            button.localScale = Vector3.zero;
-
-            DOTween.Sequence()
-                .Append(DOTween.To(() => _group.alpha, alpha => _group.alpha = alpha, 1f, FadeDuration))
-                .Join(_title.transform.DOScale(1f, PopDuration).SetEase(Ease.OutBack))
-                .Insert(ButtonDelay, button.DOScale(1f, PopDuration).SetEase(Ease.OutBack))
-                .SetLink(gameObject);
         }
     }
 }

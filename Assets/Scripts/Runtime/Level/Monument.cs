@@ -6,9 +6,8 @@ namespace BallGame.Level
 {
     public sealed class Monument : MonoBehaviour
     {
-        private const float CelebratePunch = 0.6f;
-
         private const float CelebrateDuration = 0.7f;
+        private const float CelebratePunch = 0.6f;
 
         [SerializeField]
         private Transform _crown;

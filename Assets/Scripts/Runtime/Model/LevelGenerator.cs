@@ -35,9 +35,7 @@ namespace BallGame.Model
                         || IsWithin(position, config.DoorPoint, config.DoorClearRadius)
                         || IsWithin(position, config.MonumentPoint, config.MonumentClearRadius)
                         || IsInGlade(position, config, glades))
-                    {
                         continue;
-                    }
 
                     obstacles.Add(new Obstacle(position, NextRadius(config, random)));
                 }
@@ -58,38 +56,22 @@ namespace BallGame.Model
                 var length = (distance - glade.Center) / glade.HalfLength;
 
                 if (length * length + side * side < 1f)
-                {
                     return true;
-                }
             }
 
             return false;
         }
 
-        private static bool IsWithin(Vector2 point, Vector2 center, float radius)
-        {
-            return (point - center).sqrMagnitude < radius * radius;
-        }
+        private static bool IsWithin(Vector2 point, Vector2 center, float radius) => (point - center).sqrMagnitude < radius * radius;
 
-        private static float NextRadius(LevelConfig config, Random random)
-        {
-            return config.ObstacleRadius * (1f + NextSigned(random) * config.ObstacleRadiusVariation);
-        }
+        private static float NextInRange(Random random, Vector2 range) => Mathf.Lerp(range.x, range.y, (float)random.NextDouble());
 
-        private static float NextSigned(Random random)
-        {
-            return (float)(random.NextDouble() * 2.0 - 1.0);
-        }
+        private static float NextRadius(LevelConfig config, Random random) =>
+            config.ObstacleRadius * (1f + NextSigned(random) * config.ObstacleRadiusVariation);
 
-        private static float NextInRange(Random random, Vector2 range)
-        {
-            return Mathf.Lerp(range.x, range.y, (float)random.NextDouble());
-        }
+        private static float NextSigned(Random random) => (float)(random.NextDouble() * 2.0 - 1.0);
 
-        private static Vector2 Perpendicular(Vector2 direction)
-        {
-            return new Vector2(-direction.y, direction.x);
-        }
+        private static Vector2 Perpendicular(Vector2 direction) => new(-direction.y, direction.x);
 
         // Dense groups alternate with glades along the lane; each glade holds lone obstacles on the lane.
         private static List<Glade> PlanGlades(LevelConfig config, Random random, List<Obstacle> obstacles)
@@ -106,9 +88,7 @@ namespace BallGame.Model
                 var gladeLength = NextInRange(random, config.GladeLength);
 
                 if (distance + gladeLength > laneLength)
-                {
                     return glades;
-                }
 
                 glades.Add(new Glade(distance + gladeLength * 0.5f, gladeLength * 0.5f));
 
@@ -127,15 +107,15 @@ namespace BallGame.Model
 
         private readonly struct Glade
         {
+            public float Center { get; }
+
+            public float HalfLength { get; }
+
             public Glade(float center, float halfLength)
             {
                 Center = center;
                 HalfLength = halfLength;
             }
-
-            public float Center { get; }
-
-            public float HalfLength { get; }
         }
     }
 }

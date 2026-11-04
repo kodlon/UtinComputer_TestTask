@@ -51,6 +51,7 @@ namespace BallGame.Model
                 if (HasReserve(level, volume))
                 {
                     startVolume = failed > 0f ? Refine(level, failed, volume) : volume;
+
                     return true;
                 }
 
@@ -58,13 +59,12 @@ namespace BallGame.Model
             }
 
             startVolume = 0f;
+
             return false;
         }
 
-        private bool HasReserve(LevelModel level, float startVolume)
-        {
-            return TryPlay(level, startVolume, out var finalVolume) && finalVolume >= startVolume * _config.SizeReserve;
-        }
+        private bool HasReserve(LevelModel level, float startVolume) =>
+            TryPlay(level, startVolume, out var finalVolume) && finalVolume >= startVolume * _config.SizeReserve;
 
         private float Refine(LevelModel level, float failed, float passed)
         {
@@ -73,13 +73,9 @@ namespace BallGame.Model
                 var middle = (failed + passed) * 0.5f;
 
                 if (HasReserve(level, middle))
-                {
                     passed = middle;
-                }
                 else
-                {
                     failed = middle;
-                }
             }
 
             return passed;
@@ -91,9 +87,7 @@ namespace BallGame.Model
             bestShotVolume = 0f;
 
             if (!_rules.CanAffordShot(volume))
-            {
                 return false;
-            }
 
             var maxShot = Mathf.Min(VolumeMath.RadiusFromVolume(volume - VolumeMath.VolumeFromRadius(_config.CriticalRadius)), _config.SolverMaxShotRadius);
             var minShot = Mathf.Min(_config.MinShotRadius, maxShot);
@@ -107,10 +101,9 @@ namespace BallGame.Model
                 var shotVolume = VolumeMath.VolumeFromRadius(shotRadius);
                 var radiusAfterShot = VolumeMath.RadiusFromVolume(volume - shotVolume);
 
-                if (!_rules.TryPredictShot(_simulation, _trial, position, radiusAfterShot, shotRadius, _infected, out var progress))
-                {
+                if (!_rules.TryPredictShot(_simulation, _trial, position, radiusAfterShot,
+                        shotRadius, _infected, out var progress))
                     continue;
-                }
 
                 var progressScore = progress / shotVolume;
                 var clearScore = _infected.Count / shotVolume;
@@ -120,9 +113,7 @@ namespace BallGame.Model
                     : !hasProgress && clearScore > bestClearScore;
 
                 if (!isBetter)
-                {
                     continue;
-                }
 
                 hasProgress |= progress > MinProgress;
                 bestProgressScore = progressScore;
@@ -148,13 +139,12 @@ namespace BallGame.Model
                 if (Vector2.Distance(position, level.DoorPoint) <= ReachEpsilon)
                 {
                     finalVolume = volume;
+
                     return true;
                 }
 
                 if (!TryPickShot(position, volume, out var shotVolume))
-                {
                     return false;
-                }
 
                 _simulation.CopyStateFrom(_best);
                 volume -= shotVolume;

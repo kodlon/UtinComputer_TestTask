@@ -76,11 +76,27 @@ namespace BallGame.Feedback
 
         private bool _isCharging;
 
-        private float _nextTickTime;
-
         private float _lastPopTime = float.NegativeInfinity;
 
         private int _nextPopSource;
+
+        private float _nextTickTime;
+
+        private void Update()
+        {
+            if (!_isCharging)
+                return;
+
+            _chargeTime += Time.deltaTime;
+
+            if (_chargeTick == null || _chargeTime < _nextTickTime)
+                return;
+
+            var ramp = Mathf.Clamp01(_chargeTime / _chargeRampTime);
+            _chargeSource.pitch = Mathf.Lerp(_chargePitch.x, _chargePitch.y, ramp);
+            _chargeSource.PlayOneShot(_chargeTick);
+            _nextTickTime = _chargeTime + Mathf.Lerp(_chargeTickInterval.x, _chargeTickInterval.y, ramp);
+        }
 
         private void OnEnable()
         {
@@ -98,53 +114,6 @@ namespace BallGame.Feedback
             _door.Opened -= OnDoorOpened;
         }
 
-        private void Update()
-        {
-            if (!_isCharging)
-            {
-                return;
-            }
-
-            _chargeTime += Time.deltaTime;
-
-            if (_chargeTick == null || _chargeTime < _nextTickTime)
-            {
-                return;
-            }
-
-            var ramp = Mathf.Clamp01(_chargeTime / _chargeRampTime);
-            _chargeSource.pitch = Mathf.Lerp(_chargePitch.x, _chargePitch.y, ramp);
-            _chargeSource.PlayOneShot(_chargeTick);
-            _nextTickTime = _chargeTime + Mathf.Lerp(_chargeTickInterval.x, _chargeTickInterval.y, ramp);
-        }
-
-        private void OnStateChanged(GameState state)
-        {
-            SetCharging(state == GameState.Charging);
-
-            switch (state)
-            {
-                case GameState.ShotInFlight:
-                    Play(_shot);
-                    Haptics.Light();
-                    break;
-
-                case GameState.Resolving:
-                    Haptics.Medium();
-                    break;
-
-                case GameState.Win:
-                    Play(_win);
-                    Haptics.Heavy();
-                    break;
-
-                case GameState.Lose:
-                    Play(_lose);
-                    Haptics.Heavy();
-                    break;
-            }
-        }
-
         private void OnDoorOpened()
         {
             Play(_doorOpen);
@@ -158,9 +127,7 @@ namespace BallGame.Feedback
         private void OnObstacleExploded()
         {
             if (_pops.Length == 0 || _popSources.Length == 0 || Time.time - _lastPopTime < PopInterval)
-            {
                 return;
-            }
 
             _lastPopTime = Time.time;
 
@@ -171,29 +138,54 @@ namespace BallGame.Feedback
             source.PlayOneShot(_pops[Random.Range(0, _pops.Length)]);
         }
 
+        private void OnStateChanged(GameState state)
+        {
+            SetCharging(state == GameState.Charging);
+
+            switch (state)
+            {
+                case GameState.ShotInFlight:
+                    Play(_shot);
+                    Haptics.Light();
+
+                break;
+
+                case GameState.Resolving:
+                    Haptics.Medium();
+
+                break;
+
+                case GameState.Win:
+                    Play(_win);
+                    Haptics.Heavy();
+
+                break;
+
+                case GameState.Lose:
+                    Play(_lose);
+                    Haptics.Heavy();
+
+                break;
+            }
+        }
+
         private void Play(AudioClip clip, float volume = 1f)
         {
             if (clip != null)
-            {
                 _sfxSource.PlayOneShot(clip, volume);
-            }
         }
 
         private void SetCharging(bool isCharging)
         {
             if (_isCharging == isCharging)
-            {
                 return;
-            }
 
             _isCharging = isCharging;
             _chargeTime = 0f;
             _nextTickTime = 0f;
 
             if (!isCharging)
-            {
                 _chargeSource.Stop();
-            }
         }
     }
 }

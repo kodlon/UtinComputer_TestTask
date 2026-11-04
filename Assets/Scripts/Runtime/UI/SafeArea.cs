@@ -15,9 +15,7 @@ namespace BallGame.UI
         private void Update()
         {
             if (Screen.safeArea != _appliedArea)
-            {
                 Apply();
-            }
         }
 
         private void Apply()

@@ -9,10 +9,10 @@ namespace BallGame.Player
     {
         private const float ChargeWobbleDuration = 0.12f;
 
-        private static readonly Vector3 ChargeWobbleScale = new(1.06f, 0.94f, 1.06f);
-
         [SerializeField]
         private Transform _visual;
+
+        private static readonly Vector3 ChargeWobbleScale = new(1.06f, 0.94f, 1.06f);
 
         private Tween _chargeTween;
 

@@ -14,19 +14,20 @@ namespace BallGame.Input
 
         private PointerEventData _pointerEventData;
 
+        public bool IsPressed { get; private set; }
+
         public event Action PressCancelled;
 
         public event Action PressReleased;
 
         public event Action PressStarted;
 
-        public bool IsPressed { get; private set; }
-
         public void SetEnabled(bool isEnabled)
         {
             if (isEnabled)
             {
                 _input.Gameplay.Enable();
+
                 return;
             }
 
@@ -62,55 +63,22 @@ namespace BallGame.Input
         private void OnApplicationFocus(bool hasFocus)
         {
             if (!hasFocus)
-            {
                 Cancel();
-            }
         }
 
         private void OnApplicationPause(bool isPaused)
         {
             if (isPaused)
-            {
                 Cancel();
-            }
-        }
-
-        private void OnChargeStarted(InputAction.CallbackContext context)
-        {
-            if (IsPressed || IsPointerOverUi())
-            {
-                return;
-            }
-
-            IsPressed = true;
-            PressStarted?.Invoke();
-        }
-
-        private void OnChargeCanceled(InputAction.CallbackContext context)
-        {
-            Release();
         }
 
         private void Cancel()
         {
             if (!IsPressed)
-            {
                 return;
-            }
 
             IsPressed = false;
             PressCancelled?.Invoke();
-        }
-
-        private void Release()
-        {
-            if (!IsPressed)
-            {
-                return;
-            }
-
-            IsPressed = false;
-            PressReleased?.Invoke();
         }
 
         // EventSystem.IsPointerOverGameObject is unreliable inside Input System callbacks, so raycast the UI directly.
@@ -120,9 +88,7 @@ namespace BallGame.Input
             var pointer = Pointer.current;
 
             if (eventSystem == null || pointer == null)
-            {
                 return false;
-            }
 
             _pointerEventData ??= new PointerEventData(eventSystem);
             _pointerEventData.position = pointer.position.ReadValue();
@@ -131,6 +97,29 @@ namespace BallGame.Input
             eventSystem.RaycastAll(_pointerEventData, _uiRaycastResults);
 
             return _uiRaycastResults.Count > 0;
+        }
+
+        private void OnChargeCanceled(InputAction.CallbackContext context)
+        {
+            Release();
+        }
+
+        private void OnChargeStarted(InputAction.CallbackContext context)
+        {
+            if (IsPressed || IsPointerOverUi())
+                return;
+
+            IsPressed = true;
+            PressStarted?.Invoke();
+        }
+
+        private void Release()
+        {
+            if (!IsPressed)
+                return;
+
+            IsPressed = false;
+            PressReleased?.Invoke();
         }
     }
 }

@@ -17,13 +17,12 @@ namespace BallGame.Core
 {
     public sealed class GameManager : MonoBehaviour
     {
+        private const float FullShakeInfectedCount = 12f;
         private const float MinMoveDistance = 0.05f;
 
         private const float ReachEpsilon = 0.001f;
 
         private const int TargetFrameRate = 60;
-
-        private const float FullShakeInfectedCount = 12f;
 
         [Header("Configs")]
         [SerializeField]
@@ -75,9 +74,9 @@ namespace BallGame.Core
 
         private readonly List<int> _previewTargets = new();
 
-        private Vector2 _impactPoint;
-
         private ShotCharger _charger;
+
+        private Vector2 _impactPoint;
 
         private LevelModel _level;
 
@@ -89,9 +88,9 @@ namespace BallGame.Core
 
         private GameState _state = GameState.Boot;
 
-        public event Action<GameState> StateChanged;
-
         private int LevelNumber => _levelIndex + 1;
+
+        public event Action<GameState> StateChanged;
 
         private void Awake()
         {
@@ -99,6 +98,75 @@ namespace BallGame.Core
             _rules = new GameRules(_balanceConfig);
             _charger = new ShotCharger(_balanceConfig, _rules, _player, _projectile);
             _playerMover.Initialize(_balanceConfig);
+        }
+
+        // The solver runs off the main thread; the HUD curtain covers the scene until the level is placed.
+        private async void Start()
+        {
+            _levelIndex = LevelProgress.CurrentIndex;
+
+            var factory = new LevelFactory(_balanceConfig, _levels, _rules);
+
+            await Awaitable.BackgroundThreadAsync();
+            var stopwatch = Stopwatch.StartNew();
+            var isCreated = factory.TryCreate(_levelIndex, out var setup);
+            stopwatch.Stop();
+            await Awaitable.MainThreadAsync();
+
+            if (destroyCancellationToken.IsCancellationRequested)
+                return;
+
+            if (!isCreated)
+            {
+                Debug.LogError($"[Solver] no solvable level after {_balanceConfig.MaxRegenerateAttempts} attempts. Tune LevelConfig.");
+                enabled = false;
+
+                return;
+            }
+
+            _level = setup.Level;
+            _startVolume = setup.StartVolume;
+
+            Log(
+                $"[Solver] level {LevelNumber}, seed {setup.Seed}: start radius {VolumeMath.RadiusFromVolume(_startVolume):0.00}, {stopwatch.ElapsedMilliseconds} ms");
+
+            _obstacleField.Build(_level, setup.Config, setup.Seed);
+            _lanePath.Setup(_level.DoorPoint);
+            _projectile.Hide();
+            _player.Initialize(_level.StartPoint, _startVolume);
+            _door.Place(_level.DoorPoint, -_level.LaneDirection, _player.transform, _balanceConfig.DoorOpenDistance);
+            _monument.Place(setup.Config.MonumentPoint, -_level.LaneDirection);
+            _cameraFollow.SetTarget(_player.transform, setup.Config.FieldBounds);
+            _hud.Initialize(LevelNumber, _player.Radius, _balanceConfig.CriticalRadius);
+            _result.Hide();
+
+            StartMove();
+        }
+
+        private void Update()
+        {
+            if (_state != GameState.Charging)
+                return;
+
+            _charger.Tick(Time.deltaTime);
+
+            if (_charger.IsOvercharged)
+            {
+                Lose(LoseReason.Overcharged);
+
+                return;
+            }
+
+            UpdateShotPreview();
+        }
+
+        private void LateUpdate()
+        {
+            if (_level != null)
+            {
+                _lanePath.Refresh(_player.Position, _player.Radius * 2f);
+                _hud.SetRadius(_player.Radius);
+            }
         }
 
         private void OnEnable()
@@ -125,187 +193,19 @@ namespace BallGame.Core
             _result.RetryClicked -= OnRetryClicked;
         }
 
-        private void Start()
-        {
-            _levelIndex = LevelProgress.CurrentIndex;
-
-            if (!new LevelFactory(_balanceConfig, _levels, _rules).TryCreate(_levelIndex, out var setup))
-            {
-                Debug.LogError($"[Solver] no solvable level after {_balanceConfig.MaxRegenerateAttempts} attempts. Tune LevelConfig.");
-                enabled = false;
-                return;
-            }
-
-            _level = setup.Level;
-            _startVolume = setup.StartVolume;
-            Log($"[Solver] level {LevelNumber}, seed {setup.Seed}: start radius {VolumeMath.RadiusFromVolume(_startVolume):0.00}");
-
-            _obstacleField.Build(_level, setup.Config, setup.Seed);
-            _lanePath.Setup(_level.DoorPoint);
-            _projectile.Hide();
-            _player.Initialize(_level.StartPoint, _startVolume);
-            _door.Place(_level.DoorPoint, -_level.LaneDirection, _player.transform, _balanceConfig.DoorOpenDistance);
-            _monument.Place(setup.Config.MonumentPoint, -_level.LaneDirection);
-            _cameraFollow.SetTarget(_player.transform, setup.Config.FieldBounds);
-            _hud.Initialize(LevelNumber, _player.Radius, _balanceConfig.CriticalRadius);
-            _result.Hide();
-
-            StartMove();
-        }
-
-        private void Update()
-        {
-            if (_state != GameState.Charging)
-            {
-                return;
-            }
-
-            _charger.Tick(Time.deltaTime);
-
-            if (_charger.IsOvercharged)
-            {
-                Lose(LoseReason.Overcharged);
-                return;
-            }
-
-            UpdateShotPreview();
-        }
-
-        private void LateUpdate()
-        {
-            if (_level != null)
-            {
-                _lanePath.Refresh(_player.Position, _player.Radius * 2f);
-                _hud.SetRadius(_player.Radius);
-            }
-        }
-
-        private void OnPressStarted()
-        {
-            if (_state != GameState.Ready)
-            {
-                return;
-            }
-
-            _charger.Begin(_level);
-            SetState(GameState.Charging);
-        }
-
-        private void OnPressReleased()
-        {
-            if (_state != GameState.Charging)
-            {
-                return;
-            }
-
-            _obstacleField.ClearTargets();
-
-            if (!_charger.TryRelease(out var shotRadius))
-            {
-                EnterReady();
-                return;
-            }
-
-            _hud.HideHint();
-            _rules.TryResolveShot(_level, _player.Position, _player.Radius, shotRadius, _infected, out _impactPoint);
-            Log($"[Game] Shot radius {shotRadius:0.00}: {_infected.Count} infected");
-
-            SetState(GameState.ShotInFlight);
-            _projectile.Launch(_impactPoint, _balanceConfig.ProjectileSpeed);
-        }
-
-        private void OnPressCancelled()
-        {
-            if (_state != GameState.Charging)
-            {
-                return;
-            }
-
-            _obstacleField.ClearTargets();
-            _charger.Refund();
-            EnterReady();
-        }
-
-        private void OnProjectileArrived()
-        {
-            if (_infected.Count == 0)
-            {
-                StartMove();
-                return;
-            }
-
-            foreach (var index in _infected)
-            {
-                _level.Kill(index);
-            }
-
-            SetState(GameState.Resolving);
-            _cameraShake.Shake(_infected.Count / FullShakeInfectedCount);
-            _obstacleField.PlayInfection(_infected, _impactPoint, _balanceConfig.InfectionWaveSpeed, _balanceConfig.ExplodeDelay);
-        }
-
-        private void OnInfectionWaveCompleted()
-        {
-            StartMove();
-        }
-
-        private void StartMove()
-        {
-            SetState(GameState.Moving);
-
-            var freeDistance = _rules.FreeDistance(_level, _player.Position, _player.Radius);
-            var target = _player.Position + _level.LaneDirection * freeDistance;
-
-            if (freeDistance < MinMoveDistance)
-            {
-                if (Vector2.Distance(target, _level.DoorPoint) <= ReachEpsilon)
-                {
-                    _player.SetPosition(_level.DoorPoint);
-                }
-
-                OnMoveCompleted();
-                return;
-            }
-
-            _playerMover.Move(target);
-        }
-
-        private void OnMoveCompleted()
-        {
-            if (Vector2.Distance(_player.Position, _level.DoorPoint) <= ReachEpsilon)
-            {
-                Win();
-                return;
-            }
-
-            if (!_rules.CanAffordShot(_player.Volume))
-            {
-                Lose(LoseReason.OutOfShots);
-                return;
-            }
-
-            EnterReady();
-        }
-
         private void EnterReady()
         {
             SetState(GameState.Ready);
 
             if (_inputReader.IsPressed)
-            {
                 OnPressStarted();
-            }
         }
 
-        private void Win()
+        [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
+        private static void Log(string message)
         {
-            SetState(GameState.Win);
-            _inputReader.SetEnabled(false);
-            _door.Celebrate();
-            _monument.Celebrate();
-            _hud.HideHint();
-            _result.ShowWin(LevelNumber, _player.Volume / _startVolume);
-            Log($"[Game] Win with {_player.Volume / _startVolume:P0} of the start volume");
+            Debug.Log(message);
         }
 
         private void Lose(LoseReason reason)
@@ -320,10 +220,95 @@ namespace BallGame.Core
             Log($"[Game] Lose: {reason}");
         }
 
+        private void OnInfectionWaveCompleted()
+        {
+            StartMove();
+        }
+
+        private void OnMoveCompleted()
+        {
+            if (Vector2.Distance(_player.Position, _level.DoorPoint) <= ReachEpsilon)
+            {
+                Win();
+
+                return;
+            }
+
+            if (!_rules.CanAffordShot(_player.Volume))
+            {
+                Lose(LoseReason.OutOfShots);
+
+                return;
+            }
+
+            EnterReady();
+        }
+
         private void OnNextClicked()
         {
             LevelProgress.Advance();
             ReloadScene();
+        }
+
+        private void OnPressCancelled()
+        {
+            if (_state != GameState.Charging)
+                return;
+
+            _obstacleField.ClearTargets();
+            _charger.Refund();
+            EnterReady();
+        }
+
+        private void OnPressReleased()
+        {
+            if (_state != GameState.Charging)
+                return;
+
+            _obstacleField.ClearTargets();
+
+            if (!_charger.TryRelease(out var shotRadius))
+            {
+                EnterReady();
+
+                return;
+            }
+
+            _hud.HideHint();
+
+            _rules.TryResolveShot(_level, _player.Position, _player.Radius, shotRadius,
+                _infected, out _impactPoint);
+
+            Log($"[Game] Shot radius {shotRadius:0.00}: {_infected.Count} infected");
+
+            SetState(GameState.ShotInFlight);
+            _projectile.Launch(_impactPoint, _balanceConfig.ProjectileSpeed);
+        }
+
+        private void OnPressStarted()
+        {
+            if (_state != GameState.Ready)
+                return;
+
+            _charger.Begin(_level);
+            SetState(GameState.Charging);
+        }
+
+        private void OnProjectileArrived()
+        {
+            if (_infected.Count == 0)
+            {
+                StartMove();
+
+                return;
+            }
+
+            foreach (var index in _infected)
+                _level.Kill(index);
+
+            SetState(GameState.Resolving);
+            _cameraShake.Shake(_infected.Count / FullShakeInfectedCount);
+            _obstacleField.PlayInfection(_infected, _impactPoint, _balanceConfig.InfectionWaveSpeed, _balanceConfig.ExplodeDelay);
         }
 
         private void OnRetryClicked()
@@ -342,19 +327,6 @@ namespace BallGame.Core
             LevelProgress.Reset();
         }
 
-        // Lights up exactly the obstacles that releasing now would infect.
-        private void UpdateShotPreview()
-        {
-            if (!_charger.IsShotReady
-                || !_rules.TryResolveShot(_level, _player.Position, _player.Radius, _charger.ShotRadius, _previewTargets, out _))
-            {
-                _obstacleField.ClearTargets();
-                return;
-            }
-
-            _obstacleField.ShowTargets(_previewTargets);
-        }
-
         private void SetState(GameState state)
         {
             Log($"[Game] {_state} -> {state}");
@@ -362,11 +334,50 @@ namespace BallGame.Core
             StateChanged?.Invoke(state);
         }
 
-        [Conditional("UNITY_EDITOR")]
-        [Conditional("DEVELOPMENT_BUILD")]
-        private static void Log(string message)
+        private void StartMove()
         {
-            Debug.Log(message);
+            SetState(GameState.Moving);
+
+            var freeDistance = _rules.FreeDistance(_level, _player.Position, _player.Radius);
+            var target = _player.Position + _level.LaneDirection * freeDistance;
+
+            if (freeDistance < MinMoveDistance)
+            {
+                if (Vector2.Distance(target, _level.DoorPoint) <= ReachEpsilon)
+                    _player.SetPosition(_level.DoorPoint);
+
+                OnMoveCompleted();
+
+                return;
+            }
+
+            _playerMover.Move(target);
+        }
+
+        // Lights up exactly the obstacles that releasing now would infect.
+        private void UpdateShotPreview()
+        {
+            if (!_charger.IsShotReady
+                || !_rules.TryResolveShot(_level, _player.Position, _player.Radius, _charger.ShotRadius,
+                    _previewTargets, out _))
+            {
+                _obstacleField.ClearTargets();
+
+                return;
+            }
+
+            _obstacleField.ShowTargets(_previewTargets);
+        }
+
+        private void Win()
+        {
+            SetState(GameState.Win);
+            _inputReader.SetEnabled(false);
+            _door.Celebrate();
+            _monument.Celebrate();
+            _hud.HideHint();
+            _result.ShowWin(LevelNumber, _player.Volume / _startVolume);
+            Log($"[Game] Win with {_player.Volume / _startVolume:P0} of the start volume");
         }
     }
 }
